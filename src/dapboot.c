@@ -23,7 +23,6 @@
 #include "dapboot.h"
 #include "target.h"
 #include "usb_conf.h"
-#include "webusb.h"
 #include "winusb.h"
 #include "config.h"
 

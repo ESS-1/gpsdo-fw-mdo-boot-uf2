@@ -21,7 +21,6 @@
 #include <string.h>
 
 #include "target.h"
-#include "webusb.h"
 
 #include <libopencm3/usb/msc.h>
 
@@ -98,7 +97,7 @@ static const struct usb_interface interfaces[] = {
     {
         .num_altsetting = 1,
         .altsetting = &msc_iface,
-    },    
+    },
 };
 
 static const struct usb_config_descriptor config = {
@@ -112,18 +111,6 @@ static const struct usb_config_descriptor config = {
     .bMaxPower = 0x32,
 
     .interface = interfaces,
-};
-
-static const struct usb_device_capability_descriptor* capabilities[] = {
-    (const struct usb_device_capability_descriptor*)&webusb_platform,
-};
-
-static const struct usb_bos_descriptor bos = {
-    .bLength = USB_DT_BOS_SIZE,
-    .bDescriptorType = USB_DT_BOS,
-    .wTotalLength = USB_DT_BOS_SIZE + sizeof(webusb_platform),
-    .bNumDeviceCaps = sizeof(capabilities)/sizeof(capabilities[0]),
-    .capabilities = capabilities
 };
 
 static char serial_number[USB_SERIAL_NUM_LENGTH+1];
@@ -150,7 +137,7 @@ usbd_device* usb_setup(void) {
     int num_strings = sizeof(usb_strings)/sizeof(const char*);
 
     const usbd_driver* driver = target_usb_init();
-    usbd_device* usbd_dev = usbd_init(driver, &dev, &config, &bos,
+    usbd_device* usbd_dev = usbd_init(driver, &dev, &config,
                                       usb_strings, num_strings,
                                       usbd_control_buffer, sizeof(usbd_control_buffer));
 
