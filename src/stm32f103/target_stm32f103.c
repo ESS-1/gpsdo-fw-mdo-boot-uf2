@@ -27,14 +27,9 @@
 
 #include "target.h"
 #include "config.h"
-#include "backup.h"
 
 #ifndef USES_GPIOA
-#if (HAVE_USB_PULLUP_CONTROL == 0)
-#define USES_GPIOA 1
-#else
 #define USES_GPIOA 0
-#endif
 #endif
 
 #ifndef USES_GPIOB
@@ -259,13 +254,6 @@ static uint16_t* get_flash_end(void) {
     /* Only allow access to the chip's self-reported flash size */
     return (uint16_t*)(FLASH_BASE + (size_t)DESIG_FLASH_SIZE*FLASH_PAGE_SIZE);
 #endif
-}
-
-size_t target_get_max_firmware_size(void) {
-    uint8_t* flash_end = (uint8_t*)get_flash_end();
-    uint8_t* flash_start = (uint8_t*)(APP_BASE_ADDRESS);
-
-    return (flash_end >= flash_start) ? (size_t)(flash_end - flash_start) : 0;
 }
 
 void target_relocate_vector_table(void) {

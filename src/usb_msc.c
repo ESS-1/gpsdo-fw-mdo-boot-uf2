@@ -234,6 +234,10 @@ static const uint8_t _spc3_request_sense[18] = {
 	0x00	/* Byte 17: SenseKeySpecific[0] = 0 */
 };
 
+#ifndef MIN
+#define MIN(a, b) ((a) < (b) ? (a) : (b))
+#endif
+
 /*-- SCSI Layer --------------------------------------------------------------*/
 
 static void set_sbc_status(usbd_mass_storage *ms,
@@ -768,10 +772,10 @@ int msc_started = 0;
 /** @brief Handle various control requests related to the msc storage
  *	   interface.
  */
-static int msc_control_request(usbd_device *usbd_dev,
-			       struct usb_setup_data *req, uint8_t **buf,
-			       uint16_t *len,
-			       usbd_control_complete_callback *complete)
+static enum usbd_request_return_codes msc_control_request(usbd_device *usbd_dev,
+														  struct usb_setup_data *req, uint8_t **buf,
+														  uint16_t *len,
+														  usbd_control_complete_callback *complete)
 {
 	(void)complete;
 	(void)usbd_dev;

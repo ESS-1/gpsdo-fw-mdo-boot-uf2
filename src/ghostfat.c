@@ -1,6 +1,7 @@
 
 #include "uf2.h"
 
+#include <libopencm3/cm3/scb.h>
 #include <string.h>
 #include "target.h"
 #include "dmesg.h"
@@ -172,7 +173,7 @@ void ghostfat_1ms() {
 
     if (resetTime && ms >= resetTime) {
         flushFlash();
-        target_manifest_app();
+        scb_reset_system();
         while (1);
     }
 
@@ -315,8 +316,6 @@ WriteState wrState;
 
 int write_block(uint32_t lba, const uint8_t *copy_from)
 {
-    target_set_led((wrState.numWritten * 17) & 1);
     write_block_core(lba, copy_from, false, &wrState);
-    target_set_led(0);
     return 0;
 }
