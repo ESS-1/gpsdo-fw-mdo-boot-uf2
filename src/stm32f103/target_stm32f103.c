@@ -45,201 +45,72 @@ _Static_assert((FLASH_BASE + FLASH_SIZE_OVERRIDE >= APP_BASE_ADDRESS),
                "Incompatible flash size");
 #endif
 
-static const uint32_t CMD_BOOT = 0x544F4F42UL;
-static const uint32_t CMD_APP = 0x3f82722aUL;
-
-//#define USE_HSI 1
-
 void target_clock_setup(void) {
-#ifdef USE_HSI
-    /* Set the system clock to 48MHz from the internal RC oscillator.
-       The clock tolerance doesn't meet the official USB spec, but
-       it's better than nothing. */
-    rcc_clock_setup_in_hsi_out_48mhz();
-#else
-    /* Set system clock to 72 MHz from an external crystal */
+    // Set system clock to 72 MHz from an external crystal
     #ifdef CRYSTAL_16MHZ
-    rcc_clock_setup_in_hse_16mhz_out_72mhz();
+        rcc_clock_setup_pll(&rcc_hse_configs[RCC_CLOCK_HSE16_72MHZ]);
     #else
-    rcc_clock_setup_in_hse_8mhz_out_72mhz();
+        rcc_clock_setup_pll(&rcc_hse_configs[RCC_CLOCK_HSE8_72MHZ]);
     #endif
-#endif
 }
 
-void target_set_led(int on) {
-#if HAVE_LED
-        if ((on && LED_OPEN_DRAIN) || (!on && !LED_OPEN_DRAIN)) {
-            gpio_clear(LED_GPIO_PORT, LED_GPIO_PIN);
-        } else {
-            gpio_set(LED_GPIO_PORT, LED_GPIO_PIN);
-        }
-#else
-    (void)on;
-#endif
-}
-
-static void sleep_us(int us){
-    for (int i = 0; i < us*10; i++) {
-        __asm__("nop");
+void target_gpio_enable(void) {
+    if (USES_GPIOA) {
+        rcc_periph_clock_enable(RCC_GPIOA);
+    }
+    if (USES_GPIOB) {
+        rcc_periph_clock_enable(RCC_GPIOB);
+    }
+    if (USES_GPIOC) {
+        rcc_periph_clock_enable(RCC_GPIOC);
     }
 }
 
-void target_gpio_setup(void) {
-    /* Enable GPIO clocks */
-    rcc_periph_clock_enable(RCC_GPIOA);
-    rcc_periph_clock_enable(RCC_GPIOB);
-    rcc_periph_clock_enable(RCC_GPIOC);
-
-    /* Setup LEDs */
-#if HAVE_LED
-    {
-        const uint8_t mode = GPIO_MODE_OUTPUT_10_MHZ;
-        const uint8_t conf = (LED_OPEN_DRAIN ? GPIO_CNF_OUTPUT_OPENDRAIN
-                                             : GPIO_CNF_OUTPUT_PUSHPULL);
-        if (LED_OPEN_DRAIN) {
-            gpio_set(LED_GPIO_PORT, LED_GPIO_PIN);
-        } else {
-            gpio_clear(LED_GPIO_PORT, LED_GPIO_PIN);
-        }
-        gpio_set_mode(LED_GPIO_PORT, mode, conf, LED_GPIO_PIN);
+void target_gpio_disable(void) {
+    if (USES_GPIOA) {
+        rcc_periph_clock_disable(RCC_GPIOA);
     }
-#endif
-
-    /* Setup the internal pull-up/pull-down for the button */
-#if HAVE_BUTTON
-    {
-        const uint8_t mode = GPIO_MODE_INPUT;
-        const uint8_t conf = GPIO_CNF_INPUT_PULL_UPDOWN;
-        gpio_set_mode(BUTTON_GPIO_PORT, mode, conf, BUTTON_GPIO_PIN);
-        if (BUTTON_ACTIVE_HIGH) {
-            gpio_clear(BUTTON_GPIO_PORT, BUTTON_GPIO_PIN);
-        } else {
-            gpio_set(BUTTON_GPIO_PORT, BUTTON_GPIO_PIN);
-        }
+    if (USES_GPIOB) {
+        rcc_periph_clock_disable(RCC_GPIOB);
     }
-#endif
-
-#if HAVE_USB_PULLUP_CONTROL
-    {
-        const uint8_t mode = GPIO_MODE_OUTPUT_10_MHZ;
-        const uint8_t conf = (USB_PULLUP_OPEN_DRAIN ? GPIO_CNF_OUTPUT_OPENDRAIN
-                                                    : GPIO_CNF_OUTPUT_PUSHPULL);
-        /* Configure USB pullup transistor, initially disabled */
-        if (USB_PULLUP_ACTIVE_HIGH) {
-            gpio_clear(USB_PULLUP_GPIO_PORT, USB_PULLUP_GPIO_PIN);
-        } else {
-            gpio_set(USB_PULLUP_GPIO_PORT, USB_PULLUP_GPIO_PIN);
-        }
-        gpio_set_mode(USB_PULLUP_GPIO_PORT, mode, conf, USB_PULLUP_GPIO_PIN);
+    if (USES_GPIOC) {
+        rcc_periph_clock_disable(RCC_GPIOC);
     }
-#else
-    {
-        /* Drive the USB DP pin to override the pull-up */
-        gpio_set_mode(GPIOA, GPIO_MODE_OUTPUT_10_MHZ,
-                      GPIO_CNF_OUTPUT_PUSHPULL, GPIO12);
-    }
-#endif
+}
 
-#if 0
-    while(1) {
-        target_set_led(1);
-        sleep_us(1200000);
-        target_set_led(0);
-        sleep_us(1200000);
+bool target_is_button_pressed(void) {
+    // Setup the internal pull-up/pull-down for the button
+    const uint8_t mode = GPIO_MODE_INPUT;
+    const uint8_t conf = GPIO_CNF_INPUT_PULL_UPDOWN;
+    gpio_set_mode(BUTTON_GPIO_PORT, mode, conf, BUTTON_GPIO_PIN);
+
+    if (BUTTON_ACTIVE_HIGH) {
+        gpio_clear(BUTTON_GPIO_PORT, BUTTON_GPIO_PIN);
+    } else {
+        gpio_set(BUTTON_GPIO_PORT, BUTTON_GPIO_PIN);
     }
 
-    // TFT
-    // RST
-    gpio_clear(GPIOC, (1 << 4));
-    sleep_us(20000);
-    //gpio_set(GPIOC, (1 << 4));
-    sleep_us(20000);
-#endif
+    // Check if the user button is held down
+    bool btn = gpio_get(BUTTON_GPIO_PORT, BUTTON_GPIO_PIN);
+    return BUTTON_ACTIVE_HIGH ? btn : !btn;
 }
 
 const usbd_driver* target_usb_init(void) {
     rcc_periph_reset_pulse(RST_USB);
 
-#if HAVE_USB_PULLUP_CONTROL
-    /* Enable USB pullup to connect */
+    // Enable USB pullup to connect
     if (USB_PULLUP_ACTIVE_HIGH) {
         gpio_set(USB_PULLUP_GPIO_PORT, USB_PULLUP_GPIO_PIN);
     } else {
         gpio_clear(USB_PULLUP_GPIO_PORT, USB_PULLUP_GPIO_PIN);
     }
-#else
-    /* Override hard-wired USB pullup to disconnect and reconnect */
-    gpio_clear(GPIOA, GPIO12);
-    int i;
-    for (i = 0; i < 800000; i++) {
-        __asm__("nop");
-    }
-#endif
+
+    const uint8_t mode = GPIO_MODE_OUTPUT_10_MHZ;
+    const uint8_t conf = (USB_PULLUP_OPEN_DRAIN ? GPIO_CNF_OUTPUT_OPENDRAIN
+                                                : GPIO_CNF_OUTPUT_PUSHPULL);
+    gpio_set_mode(USB_PULLUP_GPIO_PORT, mode, conf, USB_PULLUP_GPIO_PIN);
 
     return &st_usbfs_v1_usb_driver;
-}
-
-void target_manifest_app(void) {
-    backup_write(BKP0, CMD_APP);
-    scb_reset_system();
-}
-
-bool target_get_force_app(void) {
-    if (backup_read(BKP0) == CMD_APP) {
-        backup_write(BKP0, 0);
-        return true;        
-    }
-    return false;
-}
-
-bool target_get_force_bootloader(void) {
-    /* Enable GPIO clocks */
-    rcc_periph_clock_enable(RCC_GPIOA);
-    rcc_periph_clock_enable(RCC_GPIOB);
-    rcc_periph_clock_enable(RCC_GPIOC);
-
-    bool force = true;
-    /* Check the RTC backup register */
-    uint32_t cmd = backup_read(BKP0);
-    if (cmd == CMD_BOOT) {
-        // asked to go into bootloader?
-        backup_write(BKP0, 0);
-        return true;
-    }
-    if (cmd == CMD_APP) {        
-        // we were told to reset into app
-        backup_write(BKP0, 0);
-        return false;
-    }
-
-#ifdef DOUBLE_TAP
-    target_set_led(1);
-    // wait for second press on reset
-    backup_write(BKP0, CMD_BOOT);
-    for (int i = 0; i < 3500000; ++i)
-        asm("nop");
-    backup_write(BKP0, 0);
-    target_set_led(0);
-    force = false;
-#else
-    // a reset now should go into app
-    backup_write(BKP0, CMD_APP);
-#endif
-
-#if HAVE_BUTTON
-    /* Check if the user button is held down */
-    if (BUTTON_ACTIVE_HIGH) {
-        if (gpio_get(BUTTON_GPIO_PORT, BUTTON_GPIO_PIN)) {
-            force = true;
-        }
-    } else {
-        if (!gpio_get(BUTTON_GPIO_PORT, BUTTON_GPIO_PIN)) {
-            force = true;
-        }
-    }
-#endif
-
-    return force;
 }
 
 void target_get_serial_number(char* dest, size_t max_chars) {
