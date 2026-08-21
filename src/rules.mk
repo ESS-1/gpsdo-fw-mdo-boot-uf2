@@ -115,9 +115,11 @@ CPPFLAGS    += -I$(INCLUDE_DIR) $(DEFS)
 
 LDFLAGS    += --static -nostartfiles
 LDFLAGS    += -L$(LIB_DIR)
+LDFLAGS    += -L$(LIB_DIR)/stm32/f1
 LDFLAGS    += -T$(LDSCRIPT)
 LDFLAGS    += -Wl,-Map=$(*).map
 LDFLAGS    += -Wl,--gc-sections
+LDFLAGS    += -Wl,--print-memory-usage
 ifeq ($(V),99)
 LDFLAGS    += -Wl,--print-gc-sections
 endif
@@ -159,35 +161,36 @@ $(LIB_DIR)/lib$(LIBNAME).a: $(OPENCM3_DIR)/Makefile
 locm3: $(LIB_DIR)/lib$(LIBNAME).a
 
 %.images: %.bin %.hex %.srec %.list %.map
-	@#printf "*** $* images generated ***\n"
+	@printf "*** $* images generated ***\n"
 
 %.bin: %.elf
-	@#printf "  OBJCOPY $(*).bin\n"
+	@printf "  OBJCOPY $(*).bin\n"
 	$(Q)$(OBJCOPY) -Obinary $(*).elf $(*).tmpbin
 	$(Q)(cat $(*).tmpbin; cat /dev/zero) | head -c 16384 > $(*).bin
 
 %.hex: %.elf
-	@#printf "  OBJCOPY $(*).hex\n"
+	@printf "  OBJCOPY $(*).hex\n"
 	$(Q)$(OBJCOPY) -Oihex $(*).elf $(*).hex
 
 %.srec: %.elf
-	@#printf "  OBJCOPY $(*).srec\n"
+	@printf "  OBJCOPY $(*).srec\n"
 	$(Q)$(OBJCOPY) -Osrec $(*).elf $(*).srec
 
 %.list: %.elf
-	@#printf "  OBJDUMP $(*).list\n"
+	@printf "  OBJDUMP $(*).list\n"
 	$(Q)$(OBJDUMP) -S $(*).elf > $(*).list
 
 %.elf %.map: $(OBJS) $(LDSCRIPT) $(LIB_DIR)/lib$(LIBNAME).a
-	@#printf "  LD      $(*).elf\n"
+	@printf "  LD      $(*).elf\n"
 	$(Q)$(LD) $(LDFLAGS) $(ARCH_FLAGS) $(OBJS) $(LDLIBS) -o $(*).elf
 
 $(BUILD)/%.o: %.c $(LIB_DIR)/lib$(LIBNAME).a
 	@printf "  CC      $(*).c\n"
+	@mkdir -p $(dir $@)
 	$(Q)$(CC) $(CFLAGS) $(CPPFLAGS) $(ARCH_FLAGS) $(VER_FLAGS) -o $@ -c $(*).c
 
 clean::
-	@#printf "  CLEAN\n"
+	@printf "  CLEAN\n"
 	$(Q)$(RM) *.o *.d *.elf *.bin *.hex *.srec *.list *.map
 
 %.stlink-flash: %.bin

@@ -22,7 +22,7 @@ OPENCM3_DIR = ../libopencm3
 UF2_VERSION_BASE = $(shell git describe --dirty --always --tags)
 VER_FLAGS = -DUF2_VERSION='"$(UF2_VERSION_BASE)"'
 
-TARGET ?= BLUEPILL
+TARGET ?= MDO1A
 include targets.mk
 
 SRCS := $(wildcard *.c)
@@ -36,7 +36,7 @@ DEPS  = $(addprefix $(BUILD)/,$(SRCS:.c=.d))
 
 ELF = $(BUILD)/$(BINARY).elf
 
-all: $(BUILD) $(BUILD)/$(BINARY).bin size
+all: $(BUILD) $(BUILD)/$(BINARY).bin
 
 $(BUILD):
 	mkdir -p $(BUILD)/stm32f103
@@ -45,9 +45,6 @@ clean::
 	rm -rf build/
 
 include rules.mk
-
-size: $(OBJS) $(ELF)
-	@$(PREFIX)-size $(ELF)
 
 BMP = $(shell ls -1 /dev/cu.usbmodem* | head -1)
 BMP_ARGS = -ex "target extended-remote $(BMP)" -ex "mon swdp_scan" -ex "attach 1"
@@ -68,7 +65,7 @@ erase:
             -c "stm32f1x unlock 0; reset halt" \
             -c "flash erase_sector 0 0 last" -c "reset" -c "shutdown"
 
-.PHONY += debug size erase
+.PHONY += debug erase
 
 OBJS := $(sort $(OBJS))
 
@@ -87,5 +84,5 @@ do-drop: all
 
 drop:
 	rm -rf build
-	set -e; for t in BLUEPILL JACDAC ; do $(MAKE) TARGET=$$t do-drop ; done
+	set -e; for t in MDO1A ; do $(MAKE) TARGET=$$t do-drop ; done
 	cd build; 7z a $(DROPNAME).zip $(DROPNAME)

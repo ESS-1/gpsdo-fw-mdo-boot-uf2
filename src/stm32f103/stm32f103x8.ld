@@ -20,7 +20,7 @@
 /* Linker script for STM32F103x8, 64k flash, 20k RAM. */
 
 /* Define memory regions. */
-/* 8k for the bootloader */
+/* 16K for the bootloader */
 MEMORY
 {
 	rom (rx) : ORIGIN = 0x08000000, LENGTH = 16K
@@ -28,4 +28,4 @@ MEMORY
 }
 
 /* Include the common ld script. */
-INCLUDE libopencm3_stm32f1.ld
+INCLUDE cortex-m-generic.ld
