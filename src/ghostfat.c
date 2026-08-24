@@ -59,8 +59,6 @@ struct TextFile {
 
 #define NUM_FAT_BLOCKS UF2_NUM_BLOCKS
 
-#define STR0(x) #x
-#define STR(x) STR0(x)
 const char infoUf2File[] = //
     "UF2 Bootloader " UF2_VERSION "\r\n"
     "Model: " PRODUCT_NAME "\r\n"
@@ -259,8 +257,6 @@ static void write_block_core(uint32_t block_no, const uint8_t *data, bool quiet,
     const UF2_Block *bl = (const void *)data;
 
     (void)block_no;
-
-    // DBG("Write magic: %x", bl->magicStart0);
 
     if (!is_uf2_block(bl) || !UF2_IS_MY_FAMILY(bl)) {
         return;

@@ -54,9 +54,6 @@ static void jump_to_application(void) {
     while (1);
 }
 
-uint32_t msTimer;
-extern int msc_started;
-
 int main(void) {
     // Read the key
     target_gpio_enable();
@@ -74,8 +71,9 @@ int main(void) {
         // Setup clocks
         target_clock_setup();
 
-        // Initialize GPIO
+        // Enable and init peripherals
         target_gpio_enable();
+        target_lcd_init();
 
         // Setup USB
         {

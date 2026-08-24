@@ -29,6 +29,10 @@ SRCS := $(wildcard *.c)
 SRCS += $(wildcard $(TARGET_COMMON_DIR)/*.c)
 SRCS += $(wildcard $(TARGET_SPEC_DIR)/*.c)
 
+# Add ST7735 lib
+LIB_ST7735_DIR = ../lib/st7735
+SRCS += $(wildcard $(LIB_ST7735_DIR)/*.c)
+
 BUILD = build/$(TARGET)
 
 OBJS += $(addprefix $(BUILD)/,$(SRCS:.c=.o))
@@ -71,6 +75,12 @@ OBJS := $(sort $(OBJS))
 
 # Add the base directory to the header search path
 CPPFLAGS += -I.
+
+# Add ST7735 lib directory to the header search path
+CPPFLAGS += -I$(LIB_ST7735_DIR)
+
+# Add HAL shim  directory to the header search path
+CPPFLAGS += -I./hal_shim
 
 # Add target config directory to the header search path
 CPPFLAGS += -I$(TARGET_COMMON_DIR)/

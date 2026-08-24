@@ -26,6 +26,7 @@
 extern void target_clock_setup(void);
 extern void target_gpio_enable(void);
 extern void target_gpio_disable(void);
+extern void target_lcd_init(void);
 extern bool target_is_button_pressed(void);
 extern const usbd_driver* target_usb_init(void);
 extern void target_get_serial_number(char* dest, size_t max_chars);

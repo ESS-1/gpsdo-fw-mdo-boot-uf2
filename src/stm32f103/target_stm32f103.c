@@ -20,6 +20,7 @@
 
 #include <libopencm3/stm32/rcc.h>
 #include <libopencm3/stm32/gpio.h>
+#include <libopencm3/stm32/spi.h>
 #include <libopencm3/stm32/st_usbfs.h>
 #include <libopencm3/stm32/flash.h>
 #include <libopencm3/stm32/desig.h>
@@ -76,6 +77,50 @@ void target_gpio_disable(void) {
     if (USES_GPIOC) {
         rcc_periph_clock_disable(RCC_GPIOC);
     }
+}
+
+static void target_lcd_io_init()
+{
+    // Init GPIO
+    gpio_set(LCD_RES_GPIO_Port, LCD_RES_Pin);
+    gpio_set(LCD_CS_GPIO_Port, LCD_CS_Pin);
+    gpio_set(LCD_DC_GPIO_Port, LCD_DC_Pin);
+
+    gpio_set_mode(LCD_RES_GPIO_Port, GPIO_MODE_OUTPUT_2_MHZ, GPIO_CNF_OUTPUT_PUSHPULL, LCD_RES_Pin);
+    gpio_set_mode(LCD_CS_GPIO_Port, GPIO_MODE_OUTPUT_2_MHZ, GPIO_CNF_OUTPUT_PUSHPULL, LCD_CS_Pin);
+    gpio_set_mode(LCD_DC_GPIO_Port, GPIO_MODE_OUTPUT_50_MHZ, GPIO_CNF_OUTPUT_PUSHPULL, LCD_DC_Pin);
+}
+
+static void target_lcd_spi_init(void)
+{
+    // Enable SPI clock
+    rcc_periph_clock_enable(LCD_SPI_RCC);
+    spi_disable(LCD_SPI);
+
+    // Configure SPI pins (SCK and MOSI) as Alternate Function Push-Pull (50MHz)
+    gpio_set_mode(LCD_SCL_GPIO_Port, GPIO_MODE_OUTPUT_50_MHZ, GPIO_CNF_OUTPUT_ALTFN_PUSHPULL, LCD_SCL_Pin);
+    gpio_set_mode(LCD_SDA_GPIO_Port, GPIO_MODE_OUTPUT_50_MHZ, GPIO_CNF_OUTPUT_ALTFN_PUSHPULL, LCD_SDA_Pin);
+
+    // Reset and init SPI
+    spi_init_master(
+        LCD_SPI,
+        SPI_CR1_BAUDRATE_FPCLK_DIV_8,
+        SPI_CR1_CPOL_CLK_TO_0_WHEN_IDLE,
+        SPI_CR1_CPHA_CLK_TRANSITION_1,
+        SPI_CR1_DFF_8BIT,
+        SPI_CR1_MSBFIRST);
+
+    spi_enable_software_slave_management(LCD_SPI);
+    spi_set_nss_high(LCD_SPI);
+
+    // Enable SPI
+    spi_enable(LCD_SPI);
+}
+
+void target_lcd_init()
+{
+    target_lcd_io_init();
+    target_lcd_spi_init();
 }
 
 bool target_is_button_pressed(void) {
