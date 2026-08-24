@@ -1,3 +1,6 @@
 [submodule "libopencm3"]
 	path = libopencm3
 	url = https://github.com/libopencm3/libopencm3.git
+[submodule "lib/st7735"]
+	path = lib/st7735
+	url = https://github.com/ESS-1/stm32-st7735.git
