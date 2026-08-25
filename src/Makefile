@@ -18,7 +18,7 @@
 
 BINARY = uf2boot
 OPENCM3_DIR = ../libopencm3
-HAL_SHIM_DIR = ./hal_shim
+HAL_SHIM_DIR = $(TARGET_SPEC_DIR)/hal_shim
 
 UF2_VERSION_BASE = $(shell git describe --dirty --always --tags)
 VER_FLAGS = -DUF2_VERSION='"$(UF2_VERSION_BASE)"'
