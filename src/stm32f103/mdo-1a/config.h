@@ -5,7 +5,7 @@
 
 #define UF2_FAMILY             0xCA8A701A // MDO-1A family ID
 
-#define APP_BASE_ADDRESS       0x08004000
+#define FLASH_SIZE_OVERRIDE    0x20000 // 128K
 #define FLASH_SIZE_OVERRIDE    0x20000
 #define FLASH_PAGE_SIZE        1024
 
@@ -42,5 +42,9 @@
 #define LCD_SDA_GPIO_Port       GPIOA
 #define LCD_SPI                 SPI1
 #define LCD_SPI_RCC             RCC_SPI1
+
+// USB
+#define USB_BUS_POWERED         1
+#define USB_MAX_CURRENT         0xFA // 500 mA
 
 #endif

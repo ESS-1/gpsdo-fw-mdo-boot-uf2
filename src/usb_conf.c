@@ -88,9 +88,8 @@ static const struct usb_config_descriptor config = {
     .bNumInterfaces = sizeof(interfaces)/sizeof(struct usb_interface),
     .bConfigurationValue = 1,
     .iConfiguration = 0,
-    .bmAttributes = 0xC0,
-    .bMaxPower = 0x32,
-
+    .bmAttributes = 0x80 | (USB_BUS_POWERED ? 0 : 0x40),
+    .bMaxPower = USB_MAX_CURRENT,
     .interface = interfaces,
 };
 

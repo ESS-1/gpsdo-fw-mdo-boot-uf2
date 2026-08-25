@@ -88,6 +88,13 @@ CPPFLAGS += -I$(HAL_SHIM_DIR)/
 CPPFLAGS += -I$(TARGET_COMMON_DIR)/
 CPPFLAGS += -I$(TARGET_SPEC_DIR)/
 
+# Add BOOTLOADER_SIZE to the preprocessor definitions and linker flags
+ifndef BOOTLOADER_SIZE
+$(error [ERROR] BOOTLOADER_SIZE is not defined in targets.mk for TARGET=$(TARGET))
+endif
+CPPFLAGS += -DBOOTLOADER_SIZE=$(BOOTLOADER_SIZE)
+LDFLAGS += -Wl,--defsym=__BOOTLOADER_SIZE__=$(BOOTLOADER_SIZE)
+
 DROPNAME = uf2-stm32f103-$(UF2_VERSION_BASE)
 
 do-drop: all

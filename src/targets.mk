@@ -19,6 +19,7 @@ ifeq ($(TARGET),MDO1A)
 	TARGET_SPEC_DIR		:= ./stm32f103/mdo-1a
 	LDSCRIPT			:= ./stm32f103/stm32f103x8.ld
 	ARCH				= STM32F1
+	BOOTLOADER_SIZE		:= 0x4000
 endif
 
 ifndef ARCH

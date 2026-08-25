@@ -42,8 +42,7 @@
 #endif
 
 #ifdef FLASH_SIZE_OVERRIDE
-_Static_assert((FLASH_BASE + FLASH_SIZE_OVERRIDE >= APP_BASE_ADDRESS),
-               "Incompatible flash size");
+_Static_assert((FLASH_SIZE_OVERRIDE >= BOOTLOADER_SIZE), "Incompatible flash size");
 #endif
 
 void target_clock_setup(void) {
