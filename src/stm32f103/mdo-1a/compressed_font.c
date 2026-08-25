@@ -2,7 +2,7 @@
 
 #define FONT_DATA_SIZE  ((int32_t)('~'-' '+1) * 10)
 
-static uint16_t Font7x10_decompressed[FONT_DATA_SIZE] = { 0 };
+static uint16_t Font7x10_decompressed[FONT_DATA_SIZE];
 
 FontDef CompressedFont_7x10 = { .width = 7, .height = 10, .data = Font7x10_decompressed };
 
