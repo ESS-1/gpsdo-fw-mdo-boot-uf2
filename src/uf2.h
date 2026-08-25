@@ -1,6 +1,8 @@
 #ifndef UF2FORMAT_H
 #define UF2FORMAT_H 1
 
+#include <libopencm3/stm32/flash.h>
+
 #include "uf2cfg.h"
 #include "target.h"
 #include "config.h"

@@ -21,6 +21,7 @@
 #include <string.h>
 
 #include "target.h"
+#include "config.h"
 
 #include <libopencm3/usb/msc.h>
 
@@ -97,7 +98,7 @@ static char serial_number[USB_SERIAL_NUM_LENGTH+1];
 
 static const char *usb_strings[] = {
     "Devanarchy",
-    "DAPBoot DFU Bootloader",
+    "UF2 Bootloader",
     serial_number,
     "DAPBoot DFU"
 };

@@ -20,8 +20,9 @@ static inline void HAL_Delay(uint32_t ms)
     while (ms--) {
         uint32_t cycles = loops_per_ms;
         __asm__ volatile(
-            "1: subs %[cycles], %[cycles], #1 \n"
-            "   bne 1b \n"
+            "1: nop \n"                           // 1 cycle
+            "   subs %[cycles], %[cycles], #1 \n" // 1 cycle
+            "   bne 1b \n"                        // 2 cycles
             : [cycles] "+r" (cycles)
             :
             : "cc"

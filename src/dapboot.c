@@ -18,6 +18,7 @@
 
 #include <string.h>
 #include <libopencm3/cm3/vector.h>
+#include <libopencm3/stm32/flash.h>
 
 #include "uf2.h"
 #include "target.h"
@@ -32,7 +33,7 @@ static inline void __set_MSP(uint32_t topOfMainStack) {
 }
 
 static bool is_application_valid(void) {
-    if ((*(volatile uint32_t *)APP_BASE_ADDRESS & 0x2FFE0000) == 0x20000000) {
+    if ((*(volatile uint32_t *)(FLASH_BASE + BOOTLOADER_SIZE) & 0x2FFE0000) == 0x20000000) {
         return true;
     }
     return false;
@@ -41,7 +42,7 @@ static bool is_application_valid(void) {
 static void jump_to_application(void) __attribute__ ((noreturn));
 
 static void jump_to_application(void) {
-    vector_table_t* app_vector_table = (vector_table_t*)APP_BASE_ADDRESS;
+    vector_table_t* app_vector_table = (vector_table_t*)(FLASH_BASE + BOOTLOADER_SIZE);
 
     /* Use the application's vector table */
     target_relocate_vector_table();
