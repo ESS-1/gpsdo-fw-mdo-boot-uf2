@@ -25,8 +25,15 @@ typedef enum {
 
 #define HAL_MAX_DELAY 0xFFFFFFFFU
 
-static inline HAL_StatusTypeDef HAL_SPI_Transmit(
-    SPI_HandleTypeDef* spi, const uint8_t* data, uint16_t size, uint32_t timeout)
+/**
+ * @brief Transmit data over SPI
+ * @param spi Pointer to SPI handle
+ * @param data Pointer to data buffer to transmit
+ * @param size Number of bytes to transmit
+ * @param timeout Timeout duration (not used in this implementation)
+ * @return HAL status code (HAL_OK or HAL_ERROR)
+ */
+static inline HAL_StatusTypeDef HAL_SPI_Transmit(SPI_HandleTypeDef* spi, const uint8_t* data, uint16_t size, uint32_t timeout)
 {
     (void)timeout;
 
