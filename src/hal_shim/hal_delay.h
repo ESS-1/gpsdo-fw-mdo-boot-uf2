@@ -1,5 +1,5 @@
  /**
-  * @file delay.h
+  * @file hal_delay.h
   * @brief STM32 HAL Delay compatibility shim for libopencm3.
   */
 
@@ -9,8 +9,9 @@
 #include <libopencm3/stm32/rcc.h>
 
 /**
-* @brief Frequency-independent busy-wait delay in milliseconds
-*/
+ * @brief Frequency-independent busy-wait delay in milliseconds
+ * @param ms Number of milliseconds to delay
+ */
 static inline void HAL_Delay(uint32_t ms)
 {
     uint32_t freq = rcc_ahb_frequency ? rcc_ahb_frequency : 8000000UL;
