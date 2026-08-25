@@ -18,6 +18,7 @@
 
 BINARY = uf2boot
 OPENCM3_DIR = ../libopencm3
+HAL_SHIM_DIR = ./hal_shim
 
 UF2_VERSION_BASE = $(shell git describe --dirty --always --tags)
 VER_FLAGS = -DUF2_VERSION='"$(UF2_VERSION_BASE)"'
@@ -28,6 +29,7 @@ include targets.mk
 SRCS := $(wildcard *.c)
 SRCS += $(wildcard $(TARGET_COMMON_DIR)/*.c)
 SRCS += $(wildcard $(TARGET_SPEC_DIR)/*.c)
+SRCS += $(wildcard $(HAL_SHIM_DIR)/*.c)
 
 # Add ST7735 lib
 LIB_ST7735_DIR = ../lib/st7735
@@ -80,7 +82,7 @@ CPPFLAGS += -I.
 CPPFLAGS += -I$(LIB_ST7735_DIR)
 
 # Add HAL shim  directory to the header search path
-CPPFLAGS += -I./hal_shim
+CPPFLAGS += -I$(HAL_SHIM_DIR)/
 
 # Add target config directory to the header search path
 CPPFLAGS += -I$(TARGET_COMMON_DIR)/

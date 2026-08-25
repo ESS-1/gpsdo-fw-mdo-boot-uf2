@@ -79,7 +79,7 @@ void target_gpio_disable(void) {
     }
 }
 
-static void target_lcd_io_init()
+static void target_lcd_io_init(void)
 {
     // Init GPIO
     gpio_set(LCD_RES_GPIO_Port, LCD_RES_Pin);
@@ -117,7 +117,7 @@ static void target_lcd_spi_init(void)
     spi_enable(LCD_SPI);
 }
 
-void target_lcd_init()
+void target_lcd_init(void)
 {
     target_lcd_io_init();
     target_lcd_spi_init();
