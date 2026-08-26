@@ -20,8 +20,10 @@ BINARY = uf2boot
 OPENCM3_DIR = ../libopencm3
 HAL_SHIM_DIR = $(TARGET_SPEC_DIR)/hal_shim
 
+include version.mk
+
 UF2_VERSION_BASE = $(shell git describe --dirty --always --tags)
-VER_FLAGS = -DUF2_VERSION='"$(UF2_VERSION_BASE)"'
+VER_FLAGS = -DUF2_VERSION='"$(UF2_VERSION_BASE)"' -DUF2_INFO_VERSION='"$(UF2_INFO_VERSION)"'
 
 TARGET ?= MDO1A
 include targets.mk
@@ -95,7 +97,7 @@ endif
 CPPFLAGS += -DBOOTLOADER_SIZE=$(BOOTLOADER_SIZE)
 LDFLAGS += -Wl,--defsym=__BOOTLOADER_SIZE__=$(BOOTLOADER_SIZE)
 
-DROPNAME = uf2-stm32f103-$(UF2_VERSION_BASE)
+DROPNAME = uf2-stm32f103-$(UF2_INFO_VERSION)-$(UF2_VERSION_BASE)
 
 do-drop: all
 	mkdir -p build/$(DROPNAME)

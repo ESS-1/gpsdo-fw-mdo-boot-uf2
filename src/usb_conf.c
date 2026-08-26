@@ -97,10 +97,9 @@ static const struct usb_config_descriptor config = {
 static char serial_number[USB_SERIAL_NUM_LENGTH+1];
 
 static const char *usb_strings[] = {
-    "Devanarchy",
+    VENDOR_ID,
     "UF2 Bootloader",
-    serial_number,
-    "DAPBoot DFU"
+    serial_number
 };
 
 /* Buffer to be used for control requests. */

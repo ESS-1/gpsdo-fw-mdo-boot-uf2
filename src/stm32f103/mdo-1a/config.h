@@ -23,6 +23,7 @@
 #define USES_GPIOB             1
 #define USES_GPIOC             0
 
+#define VENDOR_ID              "Generic"
 #define VOLUME_LABEL           "MDO-1A"
 #define PRODUCT_NAME           "MDO-1A GPSDO"
 #define BOARD_ID               "MDO-1A-v1"

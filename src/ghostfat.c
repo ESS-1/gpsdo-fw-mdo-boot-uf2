@@ -60,7 +60,7 @@ struct TextFile {
 #define NUM_FAT_BLOCKS UF2_NUM_BLOCKS
 
 const char infoUf2File[] = //
-    "UF2 Bootloader " UF2_VERSION "\r\n"
+    "UF2 Bootloader " UF2_INFO_VERSION "-" UF2_VERSION "\r\n"
     "Model: " PRODUCT_NAME "\r\n"
     "Board-ID: " BOARD_ID "\r\n";
 

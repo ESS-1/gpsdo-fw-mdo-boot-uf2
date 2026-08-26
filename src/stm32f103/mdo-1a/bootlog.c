@@ -54,7 +54,7 @@ static void bootlog_draw(void)
         int32_t line_index = (start_line + i) % MAX_ENTRIES;
         const bootlog_entry_t* entry = &bootlog[line_index];
 
-        ST7735_WriteString(1, 1 + i * LINE_HEIGHT_PX, entry->msg, CompressedFont_7x10, bootlog_get_color(entry->type), BG_COLOR);
+        ST7735_WriteString(0, i * LINE_HEIGHT_PX, entry->msg, CompressedFont_7x10, bootlog_get_color(entry->type), BG_COLOR);
     }
 }
 

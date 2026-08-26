@@ -172,7 +172,7 @@ static uint16_t* get_flash_end(void) {
 }
 
 void target_relocate_vector_table(void) {
-    SCB_VTOR = APP_BASE_ADDRESS & 0xFFFF;
+    SCB_VTOR = (FLASH_BASE + BOOTLOADER_SIZE) & 0xFFFF;
 }
 
 void target_flash_unlock(void) {
