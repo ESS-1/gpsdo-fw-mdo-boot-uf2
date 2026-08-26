@@ -49,9 +49,6 @@ static size_t flashSize(void) {
     return FLASH_SIZE_OVERRIDE;
 }
 
-//#define DBG NOOP
-#define DBG DMESG
-
 struct TextFile {
     const char name[11];
     const char *content;
@@ -135,9 +132,9 @@ static void flushFlash(void) {
         // disable bootloader or something
     }
 
-    DBG("Flush at %x", flashAddr);
+//    DBG("Flush at %x", flashAddr);
     if (memcmp(flashBuf, (void *)flashAddr, FLASH_PAGE_SIZE) != 0) {
-        DBG("Write flush at %x", flashAddr);
+//        DBG("Write flush at %x", flashAddr);
 
         target_flash_unlock();
         bool ok = target_flash_program_array((void *)flashAddr, (void*)flashBuf, FLASH_PAGE_SIZE / 2);
@@ -264,12 +261,12 @@ static void write_block_core(uint32_t block_no, const uint8_t *data, bool quiet,
 
     if ((bl->flags & UF2_FLAG_NOFLASH) || bl->payloadSize > 256 || (bl->targetAddr & 0xff) ||
         bl->targetAddr < USER_FLASH_START || bl->targetAddr + bl->payloadSize > USER_FLASH_END) {
-        DBG("Skip block at %x", bl->targetAddr);
+//        DBG("Skip block at %x", bl->targetAddr);
         // this happens when we're trying to re-flash CURRENT.UF2 file previously
         // copied from a device; we still want to count these blocks to reset properly
     } else {
         // logval("write block at", bl->targetAddr);
-        DBG("Write block at %x", bl->targetAddr);
+//        DBG("Write block at %x", bl->targetAddr);
         flash_write(bl->targetAddr, bl->data, bl->payloadSize);
     }
 
@@ -299,7 +296,7 @@ static void write_block_core(uint32_t block_no, const uint8_t *data, bool quiet,
                 }
             }
         }
-        //DBG("wr %d=%d (of %d)", state->numWritten, bl->blockNo, bl->numBlocks);
+//        DBG("wr %d=%d (of %d)", state->numWritten, bl->blockNo, bl->numBlocks);
     }
 
     if (!isSet && !quiet) {

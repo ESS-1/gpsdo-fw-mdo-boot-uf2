@@ -25,10 +25,6 @@
 #include <libopencm3/usb/usbd.h>
 #include <libopencm3/usb/msc.h>
 
-#include "dmesg.h"
-// #define LOG DMESG
-#define LOG NOOP
-
 /* Definitions of Mass Storage Class from:
  *
  * (A) "Universal Serial Bus Mass Storage Class Bulk-Only Transport
@@ -245,7 +241,7 @@ static void set_sbc_status(usbd_mass_storage *ms,
 			   enum sbc_asc asc,
 			   enum sbc_ascq ascq)
 {
-	LOG("SBC st %d %d %d", key, asc, ascq);
+//	LOG("SBC st %d %d %d", key, asc, ascq);
 	ms->sense.key = (uint8_t) key;
 	ms->sense.asc = (uint8_t) asc;
 	ms->sense.ascq = (uint8_t) ascq;
@@ -525,7 +521,7 @@ static void scsi_command(usbd_mass_storage *ms,
 		trans->byte_count = 0;
 	}
 
-	LOG("SCSI %x", trans->cbw.cbw.CBWCB[0]);
+//	LOG("SCSI %x", trans->cbw.cbw.CBWCB[0]);
 
 	switch (trans->cbw.cbw.CBWCB[0]) {
 	case SCSI_TEST_UNIT_READY:
@@ -780,11 +776,11 @@ static enum usbd_request_return_codes msc_control_request(usbd_device *usbd_dev,
 
 	switch (req->bRequest) {
 	case USB_MSC_REQ_BULK_ONLY_RESET:
-		LOG("MSC RESET");
+//		LOG("MSC RESET");
 		/* Do any special reset code here. */
 		return USBD_REQ_HANDLED;
 	case USB_MSC_REQ_GET_MAX_LUN:
-		LOG("GET MAX LUN");
+//		LOG("GET MAX LUN");
 		/* Return the number of LUNs.  We use 0. */
 		*buf[0] = 0;
 		*len = 1;
