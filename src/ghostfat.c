@@ -4,7 +4,6 @@
 #include <libopencm3/cm3/scb.h>
 #include <string.h>
 #include "target.h"
-#include "dmesg.h"
 
 typedef struct {
     uint8_t JumpInstruction[3];
