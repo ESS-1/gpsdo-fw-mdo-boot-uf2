@@ -4,3 +4,6 @@
 [submodule "lib/st7735"]
 	path = lib/st7735
 	url = https://github.com/ESS-1/stm32-st7735.git
+[submodule "lib/si5351"]
+	path = lib/si5351
+	url = https://github.com/ESS-1/stm32-si5351.git
