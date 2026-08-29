@@ -29,7 +29,7 @@
 #include <libopencm3/usb/msc.h>
 
 static inline void __set_MSP(uint32_t topOfMainStack) {
-    asm("msr msp, %0" : : "r" (topOfMainStack));
+    __asm__ volatile("msr msp, %0" : : "r" (topOfMainStack));
 }
 
 static bool is_application_valid(void) {

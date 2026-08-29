@@ -5,7 +5,7 @@
 #include "hal_delay.h"
 
 __attribute__((weak)) SPI_HandleTypeDef hspi1 = {.instance = SPI1};
-#define ST7735_SPI_PORT      hspi1
+#define ST7735_SPI_PORT                 hspi1
 
 #define ST7735_RES_Pin       LCD_RES_Pin
 #define ST7735_RES_GPIO_Port LCD_RES_GPIO_Port

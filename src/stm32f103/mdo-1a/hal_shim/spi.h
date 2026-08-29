@@ -10,20 +10,12 @@
 
 #include <stdint.h>
 #include <libopencm3/stm32/spi.h>
+#include "hal_shim_base.h"
 
-// Minimal dummy handle & status types for HAL compatibility
+// Minimal dummy handle type for HAL compatibility
 typedef struct {
     uint32_t instance;
 } SPI_HandleTypeDef;
-
-typedef enum {
-    HAL_OK      = 0x00U,
-    HAL_ERROR   = 0x01U,
-    HAL_BUSY    = 0x02U,
-    HAL_TIMEOUT = 0x03U
-} HAL_StatusTypeDef;
-
-#define HAL_MAX_DELAY 0xFFFFFFFFU
 
 /**
  * @brief Transmit data over SPI

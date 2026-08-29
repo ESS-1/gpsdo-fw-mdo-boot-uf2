@@ -91,7 +91,7 @@ LIB_DIR     = $(OPENCM3_DIR)/lib
 ####################################################################
 # C flags
 
-CFLAGS      += -Os -g -std=gnu11
+CFLAGS      += -Os -g -std=c2x
 CFLAGS      += -Wextra -Wshadow -Wimplicit-function-declaration
 CFLAGS      += -Wredundant-decls -Wmissing-prototypes -Wstrict-prototypes
 CFLAGS      += -fno-common -ffunction-sections -fdata-sections

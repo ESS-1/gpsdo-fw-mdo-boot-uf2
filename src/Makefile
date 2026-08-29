@@ -37,6 +37,10 @@ SRCS += $(wildcard $(HAL_SHIM_DIR)/*.c)
 LIB_ST7735_DIR = ../lib/st7735
 SRCS += $(wildcard $(LIB_ST7735_DIR)/*.c)
 
+# Add SI5351 lib
+LIB_SI5351_DIR = ../lib/si5351
+SRCS += $(wildcard $(LIB_SI5351_DIR)/*.c)
+
 BUILD = build/$(TARGET)
 
 OBJS += $(addprefix $(BUILD)/,$(SRCS:.c=.o))
@@ -82,6 +86,9 @@ CPPFLAGS += -I.
 
 # Add ST7735 lib directory to the header search path
 CPPFLAGS += -I$(LIB_ST7735_DIR)
+
+# Add SI5351 lib directory to the header search path
+CPPFLAGS += -I$(LIB_SI5351_DIR)
 
 # Add HAL shim  directory to the header search path
 CPPFLAGS += -I$(HAL_SHIM_DIR)/
