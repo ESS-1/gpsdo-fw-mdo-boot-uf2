@@ -22,7 +22,6 @@
 
 #include "uf2.h"
 #include "target.h"
-#include "bootlog.h"
 #include "usb_conf.h"
 #include "config.h"
 
@@ -70,14 +69,8 @@ int main(void) {
 
     // Bootloader mode
     {
-        // Setup clocks
-        target_clock_setup();
-
         // Enable and init peripherals
-        target_gpio_enable();
-        target_lcd_init();
-        bootlog_init();
-        bootlog_add("BOOT MODE", BOOTLOG_MSG_TYPE_HIGHLIGHTED);
+        target_init();
 
         // Setup USB
         {

@@ -4,7 +4,7 @@
 #include <stdint.h>
 #include <string.h>
 
-#define MAX_ENTRIES           7
+#define MAX_ENTRIES           6
 #define MAX_MSG_LENGTH        23
 
 #define BG_COLOR              ST7735_BLACK

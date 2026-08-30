@@ -290,6 +290,7 @@ static void write_block_core(uint32_t block_no, const uint8_t *data, bool quiet,
                 // wait a little bit before resetting, to avoid Windows transmit error
                 // https://github.com/Microsoft/uf2-samd21/issues/11
                 if (!quiet) {
+                    target_on_fw_update_completed();
                     uf2_timer_start(30);
                     isSet = true;
                 }

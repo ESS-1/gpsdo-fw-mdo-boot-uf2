@@ -29,19 +29,27 @@
 #define BOARD_ID               "MDO-1A-v1"
 #define INDEX_URL              "https://github.com/ESS-1/gpsdo-fw-mdo-1a"
 
+// PLL/OCXO pins
+#define OCXO_EN_PIN             GPIO6
+#define OCXO_EN_GPIO_PORT       GPIOA
+#define PLL_I2C                 I2C1
+#define PLL_I2C_RCC             RCC_I2C1
+#define PLL_I2C_RST             RST_I2C1
+#define PLL_I2C_PINS            (GPIO8 | GPIO9)
+#define PLL_I2C_GPIO_PORT       GPIOB
+#define PLL_I2C_AFIO_MAPR       AFIO_MAPR_I2C1_REMAP // Remap I2C1 pins to PB8 (SCL) and PB9 (SDA)
+
 // LCD GPIO
-#define LCD_RES_Pin            GPIO4
-#define LCD_RES_GPIO_Port      GPIOA
-#define LCD_CS_Pin             GPIO2
-#define LCD_CS_GPIO_Port       GPIOA
-#define LCD_DC_Pin             GPIO3
-#define LCD_DC_GPIO_Port       GPIOA
+#define LCD_RES_PIN            GPIO4
+#define LCD_RES_GPIO_PORT      GPIOA
+#define LCD_CS_PIN             GPIO2
+#define LCD_CS_GPIO_PORT       GPIOA
+#define LCD_DC_PIN             GPIO3
+#define LCD_DC_GPIO_PORT       GPIOA
 
 // LCD SPI
-#define LCD_SCL_Pin             GPIO5
-#define LCD_SCL_GPIO_Port       GPIOA
-#define LCD_SDA_Pin             GPIO7
-#define LCD_SDA_GPIO_Port       GPIOA
+#define LCD_SPI_PINS            (GPIO5 | GPIO7)
+#define LCD_SPI_GPIO_PORT       GPIOA
 #define LCD_SPI                 SPI1
 #define LCD_SPI_RCC             RCC_SPI1
 
