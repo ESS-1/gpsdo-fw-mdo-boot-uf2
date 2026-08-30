@@ -250,9 +250,6 @@ void target_init(void)
 
     // Init bootlog
     bootlog_init();
-    const uint8_t mode = GPIO_MODE_INPUT;
-    const uint8_t conf = GPIO_CNF_INPUT_PULL_UPDOWN;
-    gpio_set_mode(BUTTON_GPIO_PORT, mode, conf, BUTTON_GPIO_PIN);
     bootlog_add("BOOT MODE", BOOTLOG_MSG_TYPE_HIGHLIGHTED);
     bootlog_add("Ver. " UF2_INFO_VERSION "-" UF2_VERSION, BOOTLOG_MSG_TYPE_INFO);
 
@@ -262,7 +259,6 @@ void target_init(void)
 
     // Reconfigure systick for 72MHz SYSCLK
     systick_init(72000000);
-    return BUTTON_ACTIVE_HIGH ? btn : !btn;
 }
 
 const usbd_driver* target_usb_init(void) {

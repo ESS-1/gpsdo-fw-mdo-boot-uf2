@@ -23,16 +23,16 @@
 #include <stdint.h>
 #include <libopencm3/usb/usbd.h>
 
-extern void target_clock_setup(void);
 extern void target_gpio_enable(void);
 extern void target_gpio_disable(void);
-extern void target_lcd_init(void);
 extern bool target_is_button_pressed(void);
+extern void target_init(void);
 extern const usbd_driver* target_usb_init(void);
 extern void target_get_serial_number(char* dest, size_t max_chars);
 extern void target_relocate_vector_table(void);
 extern void target_flash_unlock(void);
 extern void target_flash_lock(void);
 extern bool target_flash_program_array(uint16_t* dest, const uint16_t* data, size_t half_word_count);
+extern void target_on_fw_update_completed(void);
 
 #endif
