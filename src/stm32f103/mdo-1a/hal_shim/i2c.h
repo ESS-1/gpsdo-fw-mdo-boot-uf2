@@ -47,13 +47,13 @@ static inline HAL_StatusTypeDef HAL_I2C_IsDeviceReady(I2C_HandleTypeDef* hi2c, u
         while (!(I2C_SR1(i2c) & (I2C_SR1_ADDR | I2C_SR1_AF))) {}
 
         if (I2C_SR1(i2c) & I2C_SR1_ADDR) {
-            (void)I2C_SR2(i2c); // Clear ADDR flag by reading SR2
             i2c_send_stop(i2c);
+            (void)I2C_SR2(i2c); // Clear ADDR flag by reading SR2
             return HAL_OK;
         }
 
         // NACK received: clear AF flag and release bus with STOP
-        I2C_SR1(i2c) &= ~I2C_SR1_AF;
+        I2C_SR1(i2c) = (uint32_t)~I2C_SR1_AF;
         i2c_send_stop(i2c);
     }
 
@@ -97,7 +97,7 @@ static inline HAL_StatusTypeDef HAL_I2C_Mem_Write(I2C_HandleTypeDef* hi2c, uint1
         i2c_send_data(i2c, pData[i]);
     }
 
-    while (!(I2C_SR1(i2c) & I2C_SR1_BTF)) {}
+    while (!(I2C_SR1(i2c) & (I2C_SR1_BTF | I2C_SR1_TxE))) {}
     i2c_send_stop(i2c);
 
     return HAL_OK;
