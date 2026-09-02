@@ -104,6 +104,10 @@ endif
 CPPFLAGS += -DBOOTLOADER_SIZE=$(BOOTLOADER_SIZE)
 LDFLAGS += -Wl,--defsym=__BOOTLOADER_SIZE__=$(BOOTLOADER_SIZE)
 
+# Enable Link-Time Optimization
+CFLAGS  += -flto
+LDFLAGS += -flto
+
 DROPNAME = uf2-stm32f103-$(UF2_INFO_VERSION)-$(UF2_VERSION_BASE)
 
 do-drop: all
