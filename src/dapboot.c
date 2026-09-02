@@ -24,6 +24,7 @@
 #include "target.h"
 #include "usb_conf.h"
 #include "config.h"
+#include "systick_utils.h"
 
 #include <libopencm3/usb/msc.h>
 
@@ -84,12 +85,12 @@ int main(void) {
         usb_msc_init(usbd_dev, 0x82, 64, 0x01, 64, VENDOR_ID, "UF2 Bootloader",
             "1.00", UF2_NUM_BLOCKS, read_block, write_block);
 
-        int cycleCount = 0;
+        uint32_t prev_tick = systick_get_tick();
         while (1) {
-            cycleCount++;
+            uint32_t this_tick = systick_get_tick();
 
-            if (cycleCount >= 700) {
-                cycleCount = 0;
+            if (this_tick != prev_tick) {
+                prev_tick = this_tick;
                 ghostfat_1ms();
             }
 

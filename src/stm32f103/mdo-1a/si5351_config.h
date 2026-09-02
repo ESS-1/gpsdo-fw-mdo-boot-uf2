@@ -2,7 +2,7 @@
 #define _SI5351_CONFIG_53839ADE62B7_H_
 
 #include "config.h"
-#include "systick.h"
+#include "systick_hal.h"
 
 #define SI5351_ADDRESS 0x60
 

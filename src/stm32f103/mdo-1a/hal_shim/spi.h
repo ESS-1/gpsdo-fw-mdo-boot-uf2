@@ -8,9 +8,9 @@
 
 #pragma once
 
-#include <stdint.h>
-#include <libopencm3/stm32/spi.h>
 #include "hal_shim_base.h"
+#include <libopencm3/stm32/spi.h>
+#include <stdint.h>
 
 // Minimal dummy handle type for HAL compatibility
 typedef struct {
@@ -25,20 +25,4 @@ typedef struct {
  * @param timeout Timeout duration (not used in this implementation)
  * @return HAL status code (HAL_OK or HAL_ERROR)
  */
-static inline HAL_StatusTypeDef HAL_SPI_Transmit(SPI_HandleTypeDef* spi, const uint8_t* data, uint16_t size, uint32_t timeout)
-{
-    (void)timeout;
-
-    if (!data || size == 0) {
-        return HAL_ERROR;
-    }
-
-    for (uint16_t i = 0; i < size; ++i) {
-        spi_send(spi->instance, data[i]);
-    }
-
-    // Wait until the last byte is completely pushed out on the wire
-    while (SPI_SR(spi->instance) & SPI_SR_BSY) {}
-
-    return HAL_OK;
-}
+extern HAL_StatusTypeDef HAL_SPI_Transmit(SPI_HandleTypeDef* spi, const uint8_t* data, uint16_t size, uint32_t timeout);

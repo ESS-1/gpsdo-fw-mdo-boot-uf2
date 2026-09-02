@@ -31,7 +31,7 @@
 #include "config.h"
 #include "bootlog.h"
 #include "si5351.h"
-#include "systick.h"
+#include "systick_hal.h"
 
 #ifndef USES_GPIOA
 #define USES_GPIOA 0
@@ -261,15 +261,20 @@ void target_init(void)
     systick_init(72000000);
 }
 
+static inline void target_usb_pullup_enable(bool enable) {
+    if ((USB_PULLUP_ACTIVE_HIGH != 0) == enable) {
+        gpio_set(USB_PULLUP_GPIO_PORT, USB_PULLUP_GPIO_PIN);
+    }
+    else {
+        gpio_clear(USB_PULLUP_GPIO_PORT, USB_PULLUP_GPIO_PIN);
+    }
+}
+
 const usbd_driver* target_usb_init(void) {
     rcc_periph_reset_pulse(RST_USB);
 
     // Enable USB pullup to connect
-    if (USB_PULLUP_ACTIVE_HIGH) {
-        gpio_set(USB_PULLUP_GPIO_PORT, USB_PULLUP_GPIO_PIN);
-    } else {
-        gpio_clear(USB_PULLUP_GPIO_PORT, USB_PULLUP_GPIO_PIN);
-    }
+    target_usb_pullup_enable(true);
 
     const uint8_t mode = GPIO_MODE_OUTPUT_2_MHZ;
     const uint8_t conf = (USB_PULLUP_OPEN_DRAIN ? GPIO_CNF_OUTPUT_OPENDRAIN
@@ -313,8 +318,8 @@ bool target_flash_program_array(uint16_t* dest, const uint16_t* data, size_t hal
     bool verified = true;
 
     /* Remember the bounds of erased data in the current page */
-    static uint16_t* erase_start;
-    static uint16_t* erase_end;
+    static uint16_t* erase_start = NULL;
+    static uint16_t* erase_end   = NULL;
 
     const uint16_t* flash_end = get_flash_end();
     while (half_word_count > 0) {
@@ -331,7 +336,7 @@ bool target_flash_program_array(uint16_t* dest, const uint16_t* data, size_t hal
         }
         flash_program_half_word((uint32_t)dest, *data);
         erase_start = dest + 1;
-        if (*dest != *data) {
+        if (*(volatile uint16_t*)dest != *data) {
             verified = false;
             break;
         }
@@ -347,4 +352,13 @@ void target_on_fw_update_completed(void)
 {
     bootlog_add("Firmware updated", BOOTLOG_MSG_TYPE_HIGHLIGHTED);
     bootlog_add("Restarting...", BOOTLOG_MSG_TYPE_INFO);
+
+    // Disable USB pullup to disconnect
+    target_usb_pullup_enable(false);
+
+    // Reset the device
+    HAL_Delay(2500);
+
+    scb_reset_system();
+    while (1) {}
 }

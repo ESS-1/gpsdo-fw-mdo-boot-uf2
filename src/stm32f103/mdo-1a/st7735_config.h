@@ -2,7 +2,7 @@
 #define __ST7735_H_CONFIG__
 
 #include "config.h"
-#include "systick.h"
+#include "systick_hal.h"
 
 __attribute__((weak)) SPI_HandleTypeDef hspi1 = { .instance = LCD_SPI };
 #define ST7735_SPI_PORT                 hspi1
