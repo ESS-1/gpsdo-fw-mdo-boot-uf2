@@ -1,21 +1,8 @@
-# ignore GNU global files
-GPATH
-GRTAGS
-GSYMS
-GTAGS
-
 # ignore build artifacts
-*.d
-*.o
-*.bin
-*.hex
-*.elf
-*.axf
-*.map
-*.uf2
-
-build
+/src/build/
 
 # ignore local makefile settings
-src/local.mk
-/.vs
+/src/local.mk
+
+# VisualStudio files
+/.vs/
