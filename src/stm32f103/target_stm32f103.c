@@ -29,21 +29,13 @@
 
 #include "target.h"
 #include "config.h"
-#include "bootlog.h"
 #include "si5351.h"
+#include "st7735.h"
 #include "systick_hal.h"
-
-#ifndef USES_GPIOA
-#define USES_GPIOA 0
-#endif
-
-#ifndef USES_GPIOB
-#define USES_GPIOB 0
-#endif
-
-#ifndef USES_GPIOC
-#define USES_GPIOC 0
-#endif
+#include "compressed_font.h"
+#include "bootlog.h"
+#include "flashmap.h"
+#include "colors.h"
 
 #ifdef FLASH_SIZE_OVERRIDE
 _Static_assert((FLASH_SIZE_OVERRIDE >= BOOTLOADER_SIZE), "Incompatible flash size");
@@ -158,6 +150,20 @@ static void target_pll_i2c_init(void)
     i2c_peripheral_enable(PLL_I2C);
 }
 
+static void target_lcd_init(void)
+{
+    // Initialize the compressed font
+    compressed_font_init();
+
+    // Initialize the LCD GPIO and SPI
+    target_lcd_io_init();
+    target_lcd_spi_init();
+
+    // Initialize and clear the LCD
+    ST7735_Init();
+    ST7735_FillScreen(COLOR_BG);
+}
+
 static bool target_pll_primary_out_init()
 {
     si5351_Init(0, SI5351_CRYSTAL_LOAD_6PF, false);
@@ -245,11 +251,9 @@ void target_init(void)
     target_gpio_enable();
 
     // Init LCD
-    target_lcd_io_init();
-    target_lcd_spi_init();
+    target_lcd_init();
 
     // Init bootlog
-    bootlog_init();
     bootlog_add("BOOT MODE", BOOTLOG_MSG_TYPE_HIGHLIGHTED);
     bootlog_add("Ver. " UF2_INFO_VERSION "-" UF2_VERSION, BOOTLOG_MSG_TYPE_INFO);
 
@@ -259,6 +263,9 @@ void target_init(void)
 
     // Reconfigure systick for 72MHz SYSCLK
     systick_init(72000000);
+
+    // Draw flash map
+    flashmap_init();
 }
 
 static inline void target_usb_pullup_enable(bool enable) {

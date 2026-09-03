@@ -18,7 +18,7 @@
 
 BINARY = uf2boot
 OPENCM3_DIR = ../libopencm3
-HAL_SHIM_DIR = $(TARGET_SPEC_DIR)/hal_shim
+HAL_SHIM_DIR = $(TARGET_COMMON_DIR)/hal_shim
 
 include version.mk
 
