@@ -5,7 +5,7 @@
 #include <string.h>
 #include "colors.h"
 
-#define MAX_ENTRIES           6
+#define MAX_ENTRIES           5
 #define MAX_MSG_LENGTH        23
 
 #define LINE_HEIGHT_PX        11
