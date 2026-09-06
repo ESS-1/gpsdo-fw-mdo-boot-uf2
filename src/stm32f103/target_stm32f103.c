@@ -37,9 +37,7 @@
 #include "flashmap.h"
 #include "colors.h"
 
-#ifdef FLASH_SIZE_OVERRIDE
-_Static_assert((FLASH_SIZE_OVERRIDE >= BOOTLOADER_SIZE), "Incompatible flash size");
-#endif
+_Static_assert((TOTAL_FLASH_SIZE >= BOOTLOADER_SIZE), "Incompatible flash size");
 
 
 static void target_error_handler(void)
@@ -242,6 +240,42 @@ static void target_clock_setup(void)
     rcc_clock_setup_pll(&rcc_hse_configs[RCC_CLOCK_HSE8_72MHZ]);
 }
 
+static void target_get_flash_info_str(char *buf, size_t maxChars)
+{
+    if (buf == NULL || maxChars == 0) {
+        return;
+    }
+
+    uint16_t flashKB = desig_get_flash_size();
+    uint32_t pageKB  = target_get_flash_page_size() / 1024;
+
+    char *p = buf;
+    char *end = buf + maxChars - 1;
+
+    // Write flash size in KB
+    if (flashKB >= 1000 && p < end) { *p++ = '0' + (flashKB / 1000) % 10; }
+    if (flashKB >= 100 && p < end)  { *p++ = '0' + (flashKB / 100) % 10; }
+    if (flashKB >= 10 && p < end)   { *p++ = '0' + (flashKB / 10) % 10; }
+    if (p < end) { *p++ = '0' + (flashKB % 10); }
+
+    // Write "KB FLASH, "
+    const char mid[] = "KB FLASH, ";
+    for (uint8_t i = 0; mid[i] && p < end; i++) {
+        *p++ = mid[i];
+    }
+
+    // Write page size in KB
+    if (p < end) { *p++ = '0' + (pageKB % 10); }
+
+    // Write "KB PAGE"
+    const char tail[] = "KB PAGE";
+    for (uint8_t i = 0; tail[i] && p < end; i++) {
+        *p++ = tail[i];
+    }
+
+    *p = '\0';
+}
+
 void target_init(void)
 {
     // Init systick for 8MHz HSI and 8MHz SYSCLK
@@ -256,6 +290,9 @@ void target_init(void)
     // Init bootlog
     bootlog_add("BOOT MODE", BOOTLOG_MSG_TYPE_HIGHLIGHTED);
     bootlog_add("Ver. " UF2_INFO_VERSION "-" UF2_VERSION, BOOTLOG_MSG_TYPE_INFO);
+    char flashInfo[23] = { '\0' };
+    target_get_flash_info_str(flashInfo, sizeof(flashInfo) / sizeof(flashInfo[0]));
+    bootlog_add(flashInfo, BOOTLOG_MSG_TYPE_INFO);
 
     // Setup OCXO clock
     target_pll_init();
@@ -308,17 +345,16 @@ void target_flash_lock(void) {
 }
 
 static uint16_t* get_flash_end(void) {
-#ifdef FLASH_SIZE_OVERRIDE
-    /* Allow access to the unofficial full 128KiB flash size */
-    return (uint16_t*)(FLASH_BASE + FLASH_SIZE_OVERRIDE);
-#else
-    /* Only allow access to the chip's self-reported flash size */
-    return (uint16_t*)(FLASH_BASE + (size_t)DESIG_FLASH_SIZE*FLASH_PAGE_SIZE);
-#endif
+    return (uint16_t*)(FLASH_BASE + TOTAL_FLASH_SIZE);
 }
 
 static inline uint16_t* get_flash_page_address(uint16_t* dest) {
-    return (uint16_t*)(((uint32_t)dest / FLASH_PAGE_SIZE) * FLASH_PAGE_SIZE);
+    uint32_t pageSize = target_get_flash_page_size();
+    return (uint16_t*)(((uint32_t)dest / pageSize) * pageSize);
+}
+
+uint32_t target_get_flash_page_size(void) {
+    return (desig_get_flash_size() > 128) ? TARGET_FLASH_PAGE_SIZE_2K : TARGET_FLASH_PAGE_SIZE_1K;
 }
 
 bool target_flash_program_array(uint16_t* dest, const uint16_t* data, size_t half_word_count) {
@@ -338,7 +374,7 @@ bool target_flash_program_array(uint16_t* dest, const uint16_t* data, size_t hal
 
         if (dest >= erase_end || dest < erase_start) {
             erase_start = get_flash_page_address(dest);
-            erase_end = erase_start + (FLASH_PAGE_SIZE)/sizeof(uint16_t);
+            erase_end = erase_start + (target_get_flash_page_size())/sizeof(uint16_t);
             flash_erase_page((uint32_t)erase_start);
         }
         flash_program_half_word((uint32_t)dest, *data);

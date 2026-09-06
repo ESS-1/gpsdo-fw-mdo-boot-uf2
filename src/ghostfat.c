@@ -44,10 +44,6 @@ typedef struct {
     uint32_t size;
 } __attribute__((packed)) DirEntry;
 
-static size_t flashSize(void) {
-    return FLASH_SIZE_OVERRIDE;
-}
-
 struct TextFile {
     const char name[11];
     const char *content;
@@ -77,7 +73,7 @@ static const struct TextFile info[] = {
 };
 #define NUM_INFO (int)(sizeof(info) / sizeof(info[0]))
 
-#define UF2_SIZE (flashSize() * 2)
+#define UF2_SIZE (TOTAL_FLASH_SIZE * 2)
 #define UF2_SECTORS (UF2_SIZE / 512)
 #define UF2_FIRST_SECTOR (NUM_INFO + 1)
 #define UF2_LAST_SECTOR (uint32_t)(UF2_FIRST_SECTOR + UF2_SECTORS - 1)
@@ -113,7 +109,7 @@ static const FAT_BootBlock BootBlock = {
 #define NO_CACHE 0xffffffff
 
 static uint32_t flashAddr = NO_CACHE;
-static uint8_t flashBuf[FLASH_PAGE_SIZE] __attribute__((aligned(4)));
+static uint8_t flashBuf[TARGET_MAX_FLASH_PAGE_SIZE] __attribute__((aligned(4)));
 static bool firstFlush = true;
 static bool hadWrite = false;
 static uint32_t ms;
@@ -132,11 +128,12 @@ static void flushFlash(void) {
     }
 
 //    DBG("Flush at %x", flashAddr);
-    if (memcmp(flashBuf, (void *)flashAddr, FLASH_PAGE_SIZE) != 0) {
+    uint32_t pageSize = target_get_flash_page_size();
+    if (memcmp(flashBuf, (void *)flashAddr, pageSize) != 0) {
 //        DBG("Write flush at %x", flashAddr);
 
         target_flash_unlock();
-        bool ok = target_flash_program_array((void *)flashAddr, (void*)flashBuf, FLASH_PAGE_SIZE / 2);
+        bool ok = target_flash_program_array((void *)flashAddr, (void*)flashBuf, pageSize / 2);
         target_flash_lock();
         (void)ok;
     }
@@ -145,16 +142,17 @@ static void flushFlash(void) {
 }
 
 static void flash_write(uint32_t dst, const uint8_t *src, int len) {
-    uint32_t newAddr = dst & ~(FLASH_PAGE_SIZE - 1);
+    uint32_t pageSize = target_get_flash_page_size();
+    uint32_t newAddr = dst & ~(pageSize - 1);
 
     hadWrite = true;
 
     if (newAddr != flashAddr) {
         flushFlash();
         flashAddr = newAddr;
-        memcpy(flashBuf, (void *)newAddr, FLASH_PAGE_SIZE);
+        memcpy(flashBuf, (void *)newAddr, pageSize);
     }
-    memcpy(flashBuf + (dst & (FLASH_PAGE_SIZE - 1)), src, len);
+    memcpy(flashBuf + (dst & (pageSize - 1)), src, len);
 }
 
 static void uf2_timer_start(int delay) {
@@ -231,13 +229,13 @@ int read_block(uint32_t block_no, uint8_t *data) {
         } else {
             sectionIdx -= NUM_INFO - 1;
             uint32_t addr = sectionIdx * 256;
-            if (addr < flashSize()) {
+            if (addr < TOTAL_FLASH_SIZE) {
                 UF2_Block *bl = (void *)data;
                 bl->magicStart0 = UF2_MAGIC_START0;
                 bl->magicStart1 = UF2_MAGIC_START1;
                 bl->magicEnd = UF2_MAGIC_END;
                 bl->blockNo = sectionIdx;
-                bl->numBlocks = flashSize() / 256;
+                bl->numBlocks = TOTAL_FLASH_SIZE / 256;
                 bl->targetAddr = addr | 0x8000000;
                 bl->payloadSize = 256;
                 memcpy(bl->data, (void *)addr, bl->payloadSize);

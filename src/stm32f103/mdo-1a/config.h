@@ -5,8 +5,8 @@
 
 #define UF2_FAMILY             0xCA8A701A // MDO-1A family ID
 
-#define FLASH_SIZE_OVERRIDE    0x20000 // 128K
-#define FLASH_PAGE_SIZE        1024    // 1024 for genuine chips, 2048 for clones
+#define TOTAL_FLASH_SIZE       0x20000 // 128K
+#define FLASH_EEPROM_SIZE      0x400   // 1K at the end of flash
 
 #define UF2_NUM_BLOCKS         8000 // UF2 drive size in blocks (512 bytes each)
 

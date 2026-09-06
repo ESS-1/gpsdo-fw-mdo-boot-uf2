@@ -23,6 +23,10 @@
 #include <stdint.h>
 #include <libopencm3/usb/usbd.h>
 
+#define TARGET_FLASH_PAGE_SIZE_1K    1024
+#define TARGET_FLASH_PAGE_SIZE_2K    2048
+#define TARGET_MAX_FLASH_PAGE_SIZE   TARGET_FLASH_PAGE_SIZE_2K
+
 extern void target_gpio_enable(void);
 extern void target_gpio_disable(void);
 extern bool target_is_button_pressed(void);
@@ -32,6 +36,7 @@ extern void target_get_serial_number(char* dest, size_t max_chars);
 extern void target_relocate_vector_table(void);
 extern void target_flash_unlock(void);
 extern void target_flash_lock(void);
+extern uint32_t target_get_flash_page_size(void);
 extern bool target_flash_program_array(uint16_t* dest, const uint16_t* data, size_t half_word_count);
 extern void target_on_fw_update_completed(void);
 

@@ -23,7 +23,7 @@
 #define UF2_IS_MY_FAMILY(bl) \
     (((bl)->flags & UF2_FLAG_FAMILYID_PRESENT) && (bl)->familyID == UF2_FAMILY)
 
-#define MAX_BLOCKS (FLASH_SIZE_OVERRIDE / 256 + 100)
+#define MAX_BLOCKS (TOTAL_FLASH_SIZE / 256 + 100)
 typedef struct {
     uint32_t numBlocks;
     uint32_t numWritten;
