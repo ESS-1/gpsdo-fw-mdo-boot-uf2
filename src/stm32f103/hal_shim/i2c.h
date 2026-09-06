@@ -4,6 +4,8 @@
  *
  * Provides a minimal implementation of STM32 HAL I2C APIs
  * to integrate HAL-based drivers without bringing in the full HAL.
+ *
+ * Only I2C_MEMADD_SIZE_8BIT is supported.
  */
 
 #pragma once
