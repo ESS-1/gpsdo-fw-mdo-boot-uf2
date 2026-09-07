@@ -233,10 +233,13 @@ int read_block(uint32_t block_no, uint8_t *data) {
                 UF2_Block *bl = (void *)data;
                 bl->magicStart0 = UF2_MAGIC_START0;
                 bl->magicStart1 = UF2_MAGIC_START1;
+                bl->flags = UF2_FLAG_FAMILYID_PRESENT;
+                bl->familyID = UF2_FAMILY;
                 bl->magicEnd = UF2_MAGIC_END;
                 bl->blockNo = sectionIdx;
                 bl->numBlocks = TOTAL_FLASH_SIZE / 256;
                 bl->targetAddr = addr | 0x8000000;
+
                 bl->payloadSize = 256;
                 memcpy(bl->data, (void *)addr, bl->payloadSize);
             }
