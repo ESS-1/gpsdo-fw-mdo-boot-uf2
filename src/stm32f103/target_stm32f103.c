@@ -360,6 +360,8 @@ uint32_t target_get_flash_page_size(void) {
 bool target_flash_program_array(uint16_t* dest, const uint16_t* data, size_t half_word_count) {
     bool verified = true;
 
+    uint32_t write_start = (uint32_t)dest;
+
     /* Remember the bounds of erased data in the current page */
     static uint16_t* erase_start = NULL;
     static uint16_t* erase_end   = NULL;
@@ -375,6 +377,7 @@ bool target_flash_program_array(uint16_t* dest, const uint16_t* data, size_t hal
         if (dest >= erase_end || dest < erase_start) {
             erase_start = get_flash_page_address(dest);
             erase_end = erase_start + (target_get_flash_page_size())/sizeof(uint16_t);
+            flashmap_draw_cell_erased((uint32_t)erase_start - FLASH_BASE);
             flash_erase_page((uint32_t)erase_start);
         }
         flash_program_half_word((uint32_t)dest, *data);
@@ -388,6 +391,8 @@ bool target_flash_program_array(uint16_t* dest, const uint16_t* data, size_t hal
         half_word_count--;
     }
 
+    flashmap_draw_cell_written(write_start - FLASH_BASE, verified);
+
     return verified;
 }
 
@@ -400,8 +405,7 @@ void target_on_fw_update_completed(void)
     target_usb_pullup_enable(false);
 
     // Reset the device
-    HAL_Delay(2500);
-
+    HAL_Delay(3500);
     scb_reset_system();
     while (1) {}
 }

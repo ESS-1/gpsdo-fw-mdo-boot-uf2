@@ -1,10 +1,12 @@
+#include <stdint.h>
 #include "flashmap.h"
 #include "st7735.h"
 #include "compressed_font.h"
 #include "colors.h"
-
 #include "config.h"
 #include "uf2cfg.h"
+#include "target.h"
+#include "bootlog.h"
 
 #define GRID_ROWS         4
 #define GRID_COLUMNS      32
@@ -15,6 +17,7 @@
 #define GRID_Y            (80 -GRID_HEIGHT)
 
 #define BYTES_PER_CELL    (TOTAL_FLASH_SIZE / (GRID_ROWS * GRID_COLUMNS))
+
 
 static void flashmap_draw_cell(int cell, uint16_t color)
 {
@@ -61,4 +64,25 @@ void flashmap_init(void)
 
         flashmap_draw_cell(i, color);
     }
+}
+
+static void flashmap_draw_cell_changed(uint32_t flashOffset, uint16_t color)
+{
+    uint32_t blockSize = target_get_flash_page_size();
+    uint32_t startCell = flashOffset / BYTES_PER_CELL;
+    uint32_t endCell = (flashOffset +  blockSize - 1) / BYTES_PER_CELL;
+
+    for (uint32_t cell = startCell; cell <= endCell; ++cell) {
+        flashmap_draw_cell(cell, color);
+    }
+}
+
+void flashmap_draw_cell_erased(uint32_t flashOffset)
+{
+    flashmap_draw_cell_changed(flashOffset, COLOR_FLASHMAP_ERASE);
+}
+
+void flashmap_draw_cell_written(uint32_t flashOffset, bool verified)
+{
+    flashmap_draw_cell_changed(flashOffset, verified ? COLOR_FLASHMAP_WRITTEN : COLOR_FLASHMAP_ERROR);
 }
