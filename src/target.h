@@ -27,10 +27,16 @@
 #define TARGET_FLASH_PAGE_SIZE_2K    2048
 #define TARGET_MAX_FLASH_PAGE_SIZE   TARGET_FLASH_PAGE_SIZE_2K
 
+typedef enum {
+    APP_STATUS_VALID = 0,
+    APP_STATUS_NO_APP = 1,
+    APP_STATUS_CRC_ERROR = 2,
+} AppStatus;
+
 extern void target_gpio_enable(void);
 extern void target_gpio_disable(void);
 extern bool target_is_button_pressed(void);
-extern void target_init(void);
+extern void target_init(AppStatus appStatus);
 extern const usbd_driver* target_usb_init(void);
 extern void target_get_serial_number(char* dest, size_t max_chars);
 extern void target_relocate_vector_table(void);

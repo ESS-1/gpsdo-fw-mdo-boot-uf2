@@ -13,14 +13,14 @@
 
 typedef struct {
     char msg[MAX_MSG_LENGTH];
-    bootlog_msg_type_t type;
-} bootlog_entry_t;
+    BootlogMsgType type;
+} BootlogEntry;
 
-static bootlog_entry_t bootlog[MAX_ENTRIES] = { 0 };
+static BootlogEntry bootlog[MAX_ENTRIES] = { 0 };
 static int32_t bootlog_next_line = 0;
 static int32_t bootlog_total_lines = 0;
 
-static uint16_t bootlog_get_color(bootlog_msg_type_t type)
+static uint16_t bootlog_get_color(BootlogMsgType type)
 {
     switch (type) {
         case BOOTLOG_MSG_TYPE_HIGHLIGHTED:
@@ -40,13 +40,13 @@ static void bootlog_draw(void)
 
     for (int32_t i = 0; i < lines_to_draw; ++i) {
         int32_t line_index = (start_line + i) % MAX_ENTRIES;
-        const bootlog_entry_t* entry = &bootlog[line_index];
+        const BootlogEntry* entry = &bootlog[line_index];
 
         ST7735_WriteString(0, i * LINE_HEIGHT_PX, entry->msg, CompressedFont_7x10, bootlog_get_color(entry->type), COLOR_BG);
     }
 }
 
-void bootlog_add(const char* msg, bootlog_msg_type_t type)
+void bootlog_add(const char* msg, BootlogMsgType type)
 {
     bootlog[bootlog_next_line].type = type;
     char* entry_msg = bootlog[bootlog_next_line].msg;

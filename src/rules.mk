@@ -28,25 +28,15 @@ endif
 
 ####################################################################
 # Target Architecture flags
-ifeq ($(ARCH),STM32F0)
-	LIBNAME     = opencm3_stm32f0
-	DEFS       += -DSTM32F0
-	FP_FLAGS   ?= -msoft-float
-	ARCH_FLAGS  = -mthumb -mcpu=cortex-m0 $(FP_FLAGS)
-	OOCD_BOARD ?= target/stm32f0x.cfg
-endif
 ifeq ($(ARCH),STM32F1)
 	LIBNAME     = opencm3_stm32f1
 	DEFS       += -DSTM32F1
 	FP_FLAGS   ?= -msoft-float
 	ARCH_FLAGS  = -mthumb -mcpu=cortex-m3 $(FP_FLAGS) -mfix-cortex-m3-ldrd
 	OOCD_BOARD ?= target/stm32f1x.cfg
+else
+    $(error Target architecture $(ARCH) not supported)
 endif
-
-LIBNAME        ?= opencm3_stm32f0
-DEFS           ?= -DSTM32F0
-FP_FLAGS       ?= -msoft-float
-ARCH_FLAGS     ?= -mthumb -mcpu=cortex-m0 $(FP_FLAGS)
 
 ####################################################################
 # Semihosting support

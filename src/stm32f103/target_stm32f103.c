@@ -276,7 +276,7 @@ static void target_get_flash_info_str(char *buf, size_t maxChars)
     *p = '\0';
 }
 
-void target_init(void)
+void target_init(AppStatus appStatus)
 {
     // Init systick for 8MHz HSI and 8MHz SYSCLK
     systick_init(8000000);
@@ -286,6 +286,16 @@ void target_init(void)
 
     // Init LCD
     target_lcd_init();
+
+    // Log the app status
+    switch (appStatus) {
+        case APP_STATUS_NO_APP:
+            bootlog_add("APP is missing!", BOOTLOG_MSG_TYPE_ERROR);
+            break;
+        case APP_STATUS_CRC_ERROR:
+            bootlog_add("APP CRC error!", BOOTLOG_MSG_TYPE_ERROR);
+            break;
+    }
 
     // Init bootlog
     bootlog_add("BOOT MODE", BOOTLOG_MSG_TYPE_HIGHLIGHTED);
