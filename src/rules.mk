@@ -29,11 +29,11 @@ endif
 ####################################################################
 # Target Architecture flags
 ifeq ($(ARCH),STM32F1)
-	LIBNAME     = opencm3_stm32f1
-	DEFS       += -DSTM32F1
-	FP_FLAGS   ?= -msoft-float
-	ARCH_FLAGS  = -mthumb -mcpu=cortex-m3 $(FP_FLAGS) -mfix-cortex-m3-ldrd
-	OOCD_BOARD ?= target/stm32f1x.cfg
+	LIBNAME      = opencm3_stm32f1
+	DEFS        += -DSTM32F1
+	FP_FLAGS    ?= -msoft-float
+	ARCH_FLAGS   = -mthumb -mcpu=cortex-m3 $(FP_FLAGS) -mfix-cortex-m3-ldrd
+	OOCD_TARGET ?= target/stm32f1x.cfg
 else
     $(error Target architecture $(ARCH) not supported)
 endif
@@ -54,8 +54,7 @@ endif
 # OpenOCD specific variables
 
 OOCD           ?= openocd
-OOCD_INTERFACE ?= interface/stlink-v2.cfg
-OOCD_BOARD     ?= target/stm32f1x.cfg
+OOCD_INTERFACE ?= interface/stlink.cfg
 
 ####################################################################
 # Executables
@@ -191,7 +190,7 @@ clean::
 %.flash: %.elf
 	@printf "  FLASH   $<\n"
 	$(Q)$(OOCD) -f $(OOCD_INTERFACE) \
-			-f $(OOCD_BOARD) \
+			-f $(OOCD_TARGET) \
 			-c "program $(*).elf verify reset exit" \
 			$(NULL)
 
