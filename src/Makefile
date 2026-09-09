@@ -16,9 +16,12 @@
 
 -include local.mk
 
-BINARY = uf2boot
+IGNORE_IDCODE ?= 0
+ifeq ($(IGNORE_IDCODE),1)
+    OOCD_CPUTAPID := -c "set CPUTAPID 0"
+endif
+
 OPENCM3_DIR = ../libopencm3
-HAL_SHIM_DIR = $(TARGET_COMMON_DIR)/hal_shim
 
 include version.mk
 
@@ -26,6 +29,8 @@ UF2_VERSION_BASE = $(shell git describe --dirty --always --tags)
 VER_FLAGS = -DUF2_VERSION='"$(UF2_VERSION_BASE)"' -DUF2_INFO_VERSION='"$(UF2_INFO_VERSION)"'
 
 TARGET ?= MDO1A
+BINARY := $(TARGET)-bootloader-v$(UF2_INFO_VERSION)
+
 include targets.mk
 
 SRCS := $(wildcard *.c)
@@ -48,36 +53,24 @@ DEPS  = $(addprefix $(BUILD)/,$(SRCS:.c=.d))
 
 ELF = $(BUILD)/$(BINARY).elf
 
-all: $(BUILD) $(BUILD)/$(BINARY).bin
-
-$(BUILD):
-	mkdir -p $(BUILD)/stm32f103
+all: $(BUILD)/$(BINARY).bin
 
 clean::
 	rm -rf build/
 
 include rules.mk
 
-BMP = $(shell ls -1 /dev/cu.usbmodem* | head -1)
-BMP_ARGS = -ex "target extended-remote $(BMP)" -ex "mon swdp_scan" -ex "attach 1"
-GDB = arm-none-eabi-gdb
-
-flash: $(ELF)
-	$(GDB) $(BMP_ARGS) -ex "load" -ex "quit" $(ELF)
-
-gdb: $(ELF)
-	$(GDB) $(BMP_ARGS) $(ELF)
-
-ocd-gdb: $(ELF)
-	-$(GDB) --eval "target remote | $(OOCD) -f $(OOCD_INTERFACE) -f $(OOCD_BOARD) -f debug.cfg" $(ELF)
-
 erase:
-	$(OOCD) -f $(OOCD_INTERFACE) -f $(OOCD_BOARD) \
+	$(OOCD) -f $(OOCD_INTERFACE) $(OOCD_CPUTAPID) -f $(OOCD_TARGET) \
             -c "init" -c "reset init" \
             -c "stm32f1x unlock 0; reset halt" \
             -c "flash erase_sector 0 0 last" -c "reset" -c "shutdown"
 
-.PHONY += debug erase
+program: $(ELF)
+	$(OOCD) -f $(OOCD_INTERFACE) $(OOCD_CPUTAPID) -f $(OOCD_TARGET) \
+            -c "program $(ELF) verify reset exit"
+
+.PHONY: all clean erase program
 
 OBJS := $(sort $(OBJS))
 
@@ -107,14 +100,3 @@ LDFLAGS += -Wl,--defsym=__BOOTLOADER_SIZE__=$(BOOTLOADER_SIZE)
 # Enable Link-Time Optimization
 CFLAGS  += -flto
 LDFLAGS += -flto
-
-DROPNAME = uf2-stm32f103-$(UF2_INFO_VERSION)-$(UF2_VERSION_BASE)
-
-do-drop: all
-	mkdir -p build/$(DROPNAME)
-	cp $(BUILD)/$(BINARY).bin build/$(DROPNAME)/$(BINARY)-$(TARGET).bin
-
-drop:
-	rm -rf build
-	set -e; for t in MDO1A ; do $(MAKE) TARGET=$$t do-drop ; done
-	cd build; 7z a $(DROPNAME).zip $(DROPNAME)

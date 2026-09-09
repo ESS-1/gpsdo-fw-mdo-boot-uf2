@@ -17,6 +17,7 @@
 ifeq ($(TARGET),MDO1A)
 	TARGET_COMMON_DIR	:= ./stm32f103
 	TARGET_SPEC_DIR		:= ./stm32f103/mdo-1a
+	HAL_SHIM_DIR        := ./stm32f103/hal_shim
 	LDSCRIPT			:= ./stm32f103/stm32f103x8.ld
 	ARCH				= STM32F1
 	BOOTLOADER_SIZE		:= 0x4000
