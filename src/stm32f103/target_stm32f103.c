@@ -295,6 +295,8 @@ void target_init(AppStatus appStatus)
         case APP_STATUS_CRC_ERROR:
             bootlog_add("APP CRC error!", BOOTLOG_MSG_TYPE_ERROR);
             break;
+        case APP_STATUS_VALID:
+            break;
     }
 
     // Init bootlog

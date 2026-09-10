@@ -127,11 +127,8 @@ static void flushFlash(void) {
         // disable bootloader or something
     }
 
-//    DBG("Flush at %x", flashAddr);
     uint32_t pageSize = target_get_flash_page_size();
     if (memcmp(flashBuf, (void *)flashAddr, pageSize) != 0) {
-//        DBG("Write flush at %x", flashAddr);
-
         target_flash_unlock();
         bool ok = target_flash_program_array((void *)flashAddr, (void*)flashBuf, pageSize / 2);
         target_flash_lock();
@@ -191,10 +188,8 @@ int read_block(uint32_t block_no, uint8_t *data) {
         memcpy(data, &BootBlock, sizeof(BootBlock));
         data[510] = 0x55;
         data[511] = 0xaa;
-        // logval("data[0]", data[0]);
     } else if (block_no < START_ROOTDIR) {
         sectionIdx -= START_FAT0;
-        // logval("sidx", sectionIdx);
         if (sectionIdx >= SECTORS_PER_FAT)
             sectionIdx -= SECTORS_PER_FAT;
         if (sectionIdx == 0) {
@@ -260,12 +255,9 @@ static void write_block_core(uint32_t block_no, const uint8_t *data, bool quiet,
 
     if ((bl->flags & UF2_FLAG_NOFLASH) || bl->payloadSize > 256 || (bl->targetAddr & 0xff) ||
         bl->targetAddr < USER_FLASH_START || bl->targetAddr + bl->payloadSize > USER_FLASH_END) {
-//        DBG("Skip block at %x", bl->targetAddr);
         // this happens when we're trying to re-flash CURRENT.UF2 file previously
         // copied from a device; we still want to count these blocks to reset properly
     } else {
-        // logval("write block at", bl->targetAddr);
-//        DBG("Write block at %x", bl->targetAddr);
         flash_write(bl->targetAddr, bl->data, bl->payloadSize);
     }
 
@@ -282,7 +274,6 @@ static void write_block_core(uint32_t block_no, const uint8_t *data, bool quiet,
             uint8_t mask = 1 << (bl->blockNo % 8);
             uint32_t pos = bl->blockNo / 8;
             if (!(state->writtenMask[pos] & mask)) {
-                // logval("incr", state->numWritten);
                 state->writtenMask[pos] |= mask;
                 state->numWritten++;
             }
@@ -295,7 +286,6 @@ static void write_block_core(uint32_t block_no, const uint8_t *data, bool quiet,
                 }
             }
         }
-//        DBG("wr %d=%d (of %d)", state->numWritten, bl->blockNo, bl->numBlocks);
     }
 
     if (!isSet && !quiet) {
