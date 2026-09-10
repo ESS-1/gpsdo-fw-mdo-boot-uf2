@@ -29,25 +29,14 @@ endif
 ####################################################################
 # Target Architecture flags
 ifeq ($(ARCH),STM32F1)
-	LIBNAME      = opencm3_stm32f1
-	DEFS        += -DSTM32F1
-	FP_FLAGS    ?= -msoft-float
-	ARCH_FLAGS   = -mthumb -mcpu=cortex-m3 $(FP_FLAGS) -mfix-cortex-m3-ldrd
-	OOCD_TARGET ?= target/stm32f1x.cfg
+    LIBNAME      = opencm3_stm32f1
+    DEFS        += -DSTM32F1
+    FP_FLAGS    ?= -msoft-float
+    ARCH_FLAGS   = -mthumb -mcpu=cortex-m3 $(FP_FLAGS) -mfix-cortex-m3-ldrd
+    OOCD_TARGET ?= target/stm32f1x.cfg
+    FLASH_BASE  ?= 0x08000000
 else
     $(error Target architecture $(ARCH) not supported)
-endif
-
-####################################################################
-# Semihosting support
-SEMIHOSTING    ?= 0
-
-ifeq ($(SEMIHOSTING),1)
-	LDFLAGS    += --specs=rdimon.specs
-	LDLIBS     += -lrdimon
-	DEFS       += -DSEMIHOSTING=1
-else
-	DEFS       += -DSEMIHOSTING=0
 endif
 
 ####################################################################
@@ -62,17 +51,12 @@ OOCD_INTERFACE ?= interface/stlink.cfg
 PREFIX         ?= arm-none-eabi
 
 CC             := $(PREFIX)-gcc
-CXX            := $(PREFIX)-g++
 LD             := $(PREFIX)-gcc
-AR             := $(PREFIX)-ar
-AS             := $(PREFIX)-as
 OBJCOPY        := $(PREFIX)-objcopy
 OBJDUMP        := $(PREFIX)-objdump
-GDB            := $(PREFIX)-gdb
-STFLASH         = $(shell which st-flash)
 
 ####################################################################
-# Source files
+# libopencm3 files
 
 INCLUDE_DIR = $(OPENCM3_DIR)/include
 LIB_DIR     = $(OPENCM3_DIR)/lib
@@ -86,14 +70,7 @@ CFLAGS      += -Wredundant-decls -Wmissing-prototypes -Wstrict-prototypes
 CFLAGS      += -fno-common -ffunction-sections -fdata-sections
 
 ####################################################################
-# C++ flags
-
-CXXFLAGS    += -Os -g
-CXXFLAGS    += -Wextra -Wshadow -Wredundant-decls  -Weffc++
-CXXFLAGS    += -fno-common -ffunction-sections -fdata-sections
-
-####################################################################
-# C & C++ preprocessor common flags
+# C preprocessor flags
 
 CPPFLAGS    += -MD
 CPPFLAGS    += -Wall -Wundef
@@ -103,15 +80,13 @@ CPPFLAGS    += -I$(INCLUDE_DIR) $(DEFS)
 # Linker flags
 
 LDFLAGS    += --static -nostartfiles
+LDFLAGS    += --specs=nosys.specs
 LDFLAGS    += -L$(LIB_DIR)
 LDFLAGS    += -L$(LIB_DIR)/stm32/f1
 LDFLAGS    += -T$(LDSCRIPT)
 LDFLAGS    += -Wl,-Map=$(*).map
 LDFLAGS    += -Wl,--gc-sections
 LDFLAGS    += -Wl,--print-memory-usage
-ifeq ($(V),99)
-LDFLAGS    += -Wl,--print-gc-sections
-endif
 
 ####################################################################
 # Used libraries
@@ -122,49 +97,36 @@ LDLIBS     += -Wl,--start-group -lc -lgcc -lnosys -Wl,--end-group
 ####################################################################
 ####################################################################
 ####################################################################
-
-.SUFFIXES: .elf .bin .hex .srec .list .map .images
 .SECONDEXPANSION:
 .SECONDARY:
 
-elf: $(BINARY).elf
-bin: $(BINARY).bin
-hex: $(BINARY).hex
-srec: $(BINARY).srec
-list: $(BINARY).list
+elf: $(BUILD)/$(BINARY).elf
+bin: $(BUILD)/$(BINARY).bin
+hex: $(BUILD)/$(BINARY).hex
+list: $(BUILD)/$(BINARY).list
 
 images: $(BUILD)/$(BINARY).images
-ocd-flash: $(BUILD)/$(BINARY).flash
 
 $(LDSCRIPT):
     ifeq (,$(wildcard $(LDSCRIPT)))
         $(error Unable to find specified linker script: $(LDSCRIPT))
     endif
 
-$(OPENCM3_DIR)/Makefile:
-	$(Q)git submodule update --init $(OPENCM3_DIR)
-
-$(LIB_DIR)/lib$(LIBNAME).a: $(OPENCM3_DIR)/Makefile
+$(LIB_DIR)/lib$(LIBNAME).a:
 	$(Q)$(MAKE) -C $(OPENCM3_DIR)
 
 locm3: $(LIB_DIR)/lib$(LIBNAME).a
 
-%.images: %.bin %.hex %.srec %.list %.map
+%.images: %.bin %.hex %.list %.map
 	@printf "*** $* images generated ***\n"
 
 %.bin: %.elf
 	@printf "  OBJCOPY $(*).bin\n"
-	$(Q)$(OBJCOPY) -Obinary $(*).elf $(*).tmpbin
-	$(Q)(cat $(*).tmpbin; cat /dev/zero) | head -c $$(($(BOOTLOADER_SIZE))) > $(*).bin
-	$(Q)rm -f $(*).tmpbin
+	$(Q)$(OBJCOPY) -Obinary --gap-fill 0xff --pad-to=$$(($(FLASH_BASE) + $(BOOTLOADER_SIZE))) $(*).elf $(*).bin
 
 %.hex: %.elf
 	@printf "  OBJCOPY $(*).hex\n"
 	$(Q)$(OBJCOPY) -Oihex $(*).elf $(*).hex
-
-%.srec: %.elf
-	@printf "  OBJCOPY $(*).srec\n"
-	$(Q)$(OBJCOPY) -Osrec $(*).elf $(*).srec
 
 %.list: %.elf
 	@printf "  OBJDUMP $(*).list\n"
@@ -179,21 +141,6 @@ $(BUILD)/%.o: %.c $(LIB_DIR)/lib$(LIBNAME).a
 	@mkdir -p $(dir $@)
 	$(Q)$(CC) $(CFLAGS) $(CPPFLAGS) $(ARCH_FLAGS) $(VER_FLAGS) -o $@ -c $(*).c
 
-clean::
-	@printf "  CLEAN\n"
-	$(Q)$(RM) *.o *.d *.elf *.bin *.hex *.srec *.list *.map
-
-%.stlink-flash: %.bin
-	@printf "  FLASH  $<\n"
-	$(Q)$(STFLASH) write $(*).bin 0x08000000
-
-%.flash: %.elf
-	@printf "  FLASH   $<\n"
-	$(Q)$(OOCD) -f $(OOCD_INTERFACE) \
-			-f $(OOCD_TARGET) \
-			-c "program $(*).elf verify reset exit" \
-			$(NULL)
-
-.PHONY: images clean elf bin hex srec list locm3
+.PHONY: images clean elf bin hex list locm3
 
 -include $(OBJS:.o=.d)
