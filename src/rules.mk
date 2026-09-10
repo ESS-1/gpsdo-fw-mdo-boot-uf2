@@ -80,7 +80,7 @@ CPPFLAGS    += -I$(INCLUDE_DIR) $(DEFS)
 # Linker flags
 
 LDFLAGS    += --static -nostartfiles
-LDFLAGS    += --specs=nosys.specs
+LDFLAGS    += --specs=nano.specs
 LDFLAGS    += -L$(LIB_DIR)
 LDFLAGS    += -L$(LIB_DIR)/stm32/f1
 LDFLAGS    += -T$(LDSCRIPT)
