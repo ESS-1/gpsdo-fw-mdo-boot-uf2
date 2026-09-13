@@ -24,7 +24,7 @@
 #define USES_GPIOC             0
 
 #define VENDOR_ID              "Generic"
-#define VOLUME_LABEL           "MDO-1A"
+#define VOLUME_LABEL           "MDO-1A     " // Should be 11 characters long, trailed with spaces
 #define PRODUCT_NAME           "MDO-1A GPSDO"
 #define BOARD_ID               "MDO-1A-v1"
 #define INDEX_URL              "https://github.com/ESS-1/gpsdo-fw-mdo-1a"
