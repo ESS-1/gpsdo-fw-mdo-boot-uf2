@@ -7,7 +7,7 @@
 
 typedef struct {
     uint8_t JumpInstruction[3];
-    uint8_t OEMInfo[8];
+    uint8_t OEMInfo[8] __attribute__((nonstring));
     uint16_t SectorSize;
     uint8_t SectorsPerCluster;
     uint16_t ReservedSectors;
@@ -24,8 +24,8 @@ typedef struct {
     uint8_t Reserved;
     uint8_t ExtendedBootSig;
     uint32_t VolumeSerialNumber;
-    uint8_t VolumeLabel[11];
-    uint8_t FilesystemIdentifier[8];
+    uint8_t VolumeLabel[11] __attribute__((nonstring));
+    uint8_t FilesystemIdentifier[8] __attribute__((nonstring));
 } __attribute__((packed)) FAT_BootBlock;
 
 typedef struct {
@@ -45,7 +45,7 @@ typedef struct {
 } __attribute__((packed)) DirEntry;
 
 struct TextFile {
-    const char name[11];
+    const char name[11] __attribute__((nonstring));
     const char *content;
 };
 
