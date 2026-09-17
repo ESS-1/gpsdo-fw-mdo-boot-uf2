@@ -30,6 +30,7 @@ endif
 # Target Architecture flags
 ifeq ($(ARCH),STM32F1)
     LIBNAME      = opencm3_stm32f1
+    LIB_TARGETS  = stm32/f1
     DEFS        += -DSTM32F1
     FP_FLAGS    ?= -msoft-float
     ARCH_FLAGS   = -mthumb -mcpu=cortex-m3 $(FP_FLAGS) -mfix-cortex-m3-ldrd
@@ -113,7 +114,7 @@ $(LDSCRIPT):
     endif
 
 $(LIB_DIR)/lib$(LIBNAME).a:
-	$(Q)$(MAKE) -C $(OPENCM3_DIR)
+	$(Q)$(MAKE) -C $(OPENCM3_DIR) TARGETS="$(LIB_TARGETS)"
 
 locm3: $(LIB_DIR)/lib$(LIBNAME).a
 
@@ -140,6 +141,10 @@ $(BUILD)/%.o: %.c $(LIB_DIR)/lib$(LIBNAME).a
 	@printf "  CC      $(*).c\n"
 	@mkdir -p $(dir $@)
 	$(Q)$(CC) $(CFLAGS) $(CPPFLAGS) $(ARCH_FLAGS) $(VER_FLAGS) -o $@ -c $(*).c
+
+clean::
+	@printf "  CLEAN   libopencm3\n"
+	$(Q)$(MAKE) -C $(OPENCM3_DIR) clean TARGETS="$(LIB_TARGETS)"
 
 .PHONY: images clean elf bin hex list locm3
 
