@@ -1,0 +1,55 @@
+name: Shared Build Workflow
+
+on:
+  workflow_call:
+
+jobs:
+  build:
+    name: Build Bootloader
+    runs-on: ubuntu-latest
+    container:
+      image: archlinux:latest
+
+    steps:
+      - name: Setup Toolchain
+        run: |
+          # Pin Arch Linux package repository snapshot
+          sed -i 's/CheckSpace/#CheckSpace/' /etc/pacman.conf
+          echo 'Server = https://archive.archlinux.org/repos/2026/09/12/$repo/os/$arch' > /etc/pacman.d/mirrorlist
+          pacman -Syy --noconfirm
+          pacman -S --noconfirm --needed \
+            git \
+            make \
+            python \
+            arm-none-eabi-gcc \
+            arm-none-eabi-binutils \
+            arm-none-eabi-newlib
+
+      - name: Configure Git Safe Directory
+        run: git config --global --add safe.directory "$GITHUB_WORKSPACE"
+
+      - name: Checkout Repository
+        uses: actions/checkout@v7
+        with:
+          submodules: recursive
+
+      - name: Display Tools Version
+        run: |
+          arm-none-eabi-gcc --version
+          arm-none-eabi-ld --version
+          make --version
+          python --version
+
+      - name: Build Bootloader
+        run: make all
+
+      - name: Archive Build Artifacts
+        uses: actions/upload-artifact@v7
+        with:
+          name: firmware-bootloader
+          path: |
+            src/build/MDO1A/*.bin
+            src/build/MDO1A/*.elf
+            src/build/MDO1A/*.map
+          if-no-files-found: error
+          retention-days: 7

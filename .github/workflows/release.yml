@@ -1,0 +1,73 @@
+name: Release Bootloader
+
+on:
+  push:
+    tags:
+      - "v*"
+  workflow_dispatch:
+    inputs:
+      tag_name:
+        description: "Release tag (e.g. v1.0.0)"
+        required: true
+        type: string
+      draft:
+        description: "Create as draft"
+        required: false
+        type: boolean
+        default: true
+
+jobs:
+  build:
+    uses: ./.github/workflows/build-shared.yml
+
+  release:
+    name: Publish GitHub Release
+    needs: build
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v7
+        with:
+          submodules: recursive
+          fetch-depth: 0
+
+      - name: Download Build Artifacts
+        uses: actions/download-artifact@v8
+        with:
+          name: firmware-bootloader
+          path: artifacts
+
+      - name: Generate SHA256 Checksums
+        run: |
+          cd artifacts
+          sha256sum *.bin *.elf > checksums.sha256
+
+      - name: Create GitHub Release
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          INPUT_TAG: ${{ inputs.tag_name }}
+          IS_DRAFT: ${{ inputs.draft }}
+        run: |
+          # Determine the release tag:
+          RELEASE_TAG="${INPUT_TAG:-$GITHUB_REF_NAME}"
+          echo "Target release tag: $RELEASE_TAG"
+
+          # Add --draft flag if manual run has draft enabled:
+          EXTRA_FLAGS=""
+          if [ "$IS_DRAFT" = "true" ]; then
+            echo "Creating release as a DRAFT (unpublished)."
+            EXTRA_FLAGS="--draft"
+          fi
+
+          gh release create "$RELEASE_TAG" \
+            artifacts/*.bin \
+            artifacts/*.elf \
+            artifacts/checksums.sha256 \
+            LICENSE \
+            README.md \
+            --title "$RELEASE_TAG" \
+            --generate-notes \
+            $EXTRA_FLAGS
