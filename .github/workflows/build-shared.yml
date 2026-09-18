@@ -46,7 +46,7 @@ jobs:
       - name: Archive Build Artifacts
         uses: actions/upload-artifact@v7
         with:
-          name: firmware-bootloader
+          name: MDO-1A-bootloader
           path: |
             src/build/MDO1A/*.bin
             src/build/MDO1A/*.elf
