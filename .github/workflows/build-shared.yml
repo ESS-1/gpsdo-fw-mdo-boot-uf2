@@ -41,7 +41,7 @@ jobs:
           python --version
 
       - name: Build Bootloader
-        run: make all
+        run: make -C ./src all
 
       - name: Archive Build Artifacts
         uses: actions/upload-artifact@v7
