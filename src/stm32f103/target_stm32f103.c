@@ -362,8 +362,8 @@ static void target_log_app_info()
 
             char message[sizeof(prefix) + APP_VERSION_SIZE] = { 0 };
             strncpy(message, prefix, sizeof(message) - 1);
-            // 'app_version' is not null-terminated, so set the character count carefully!
-            strncat(message, g_appMetadata.app_version, APP_VERSION_SIZE);
+            // Use memcpy instead of strncat to save a few bytes of flash
+            memcpy(message + sizeof(prefix) - 1, g_appMetadata.app_version, APP_VERSION_SIZE);
 
             // Add the version string to the boot log
             bootlog_add(message, BOOTLOG_MSG_TYPE_INFO);
@@ -376,8 +376,8 @@ static void target_log_app_info()
 
             char message[sizeof(prefix) + HARDWARE_ID_SIZE] = { 0 };
             strncpy(message, prefix, sizeof(message) - 1);
-            // 'hardware_id' is not null-terminated, so set the character count carefully!
-            strncat(message, g_appMetadata.hardware_id, HARDWARE_ID_SIZE);
+            // Use memcpy instead of strncat to save a few bytes of flash
+            memcpy(message + sizeof(prefix) - 1, g_appMetadata.hardware_id, HARDWARE_ID_SIZE);
 
             // Add the HWID string to the boot log
             bootlog_add(message, BOOTLOG_MSG_TYPE_INFO);
