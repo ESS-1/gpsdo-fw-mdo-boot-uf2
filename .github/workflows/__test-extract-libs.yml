@@ -81,8 +81,8 @@ jobs:
           submodules: recursive
           fetch-depth: 0
 
-      - name: Build Bootloader (Ubuntu)
-        run: make -C ./src all
+#      - name: Build Bootloader (Ubuntu)
+#        run: make -C ./src all
 
       - name: Locate & Prepare libc_nano (Ubuntu)
         run: |
@@ -101,8 +101,8 @@ jobs:
         with:
           name: Ubuntu-Build-and-Libc
           path: |
-            src/build/MDO1A/*.bin
-            src/build/MDO1A/*.elf
-            src/build/MDO1A/*.map
+#            src/build/MDO1A/*.bin
+#            src/build/MDO1A/*.elf
+#            src/build/MDO1A/*.map
             extracted_ubuntu_libs/*
           retention-days: 2
