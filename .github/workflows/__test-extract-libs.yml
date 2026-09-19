@@ -1,0 +1,108 @@
+name: Test Extract Libc Nano (Arch vs Ubuntu)
+
+on:
+  workflow_dispatch:
+
+jobs:
+  arch-build:
+    name: Build & Extract Libs (Arch Linux)
+    runs-on: ubuntu-latest
+    container:
+      image: archlinux:latest
+
+    steps:
+      - name: Setup Arch Toolchain
+        run: |
+          sed -i 's/CheckSpace/#CheckSpace/' /etc/pacman.conf
+          echo 'Server = https://archive.archlinux.org/repos/2026/09/12/$repo/os/$arch' > /etc/pacman.d/mirrorlist
+          pacman -Syy --noconfirm
+          pacman -S --noconfirm --needed \
+            git \
+            make \
+            python \
+            arm-none-eabi-gcc \
+            arm-none-eabi-binutils \
+            arm-none-eabi-newlib
+
+      - name: Configure Git Safe Directory
+        run: git config --global --add safe.directory "$GITHUB_WORKSPACE"
+
+      - name: Checkout Repository
+        uses: actions/checkout@v7
+        with:
+          submodules: recursive
+          fetch-depth: 0
+
+      - name: Build Bootloader (Arch)
+        run: make -C ./src all
+
+      - name: Locate & Prepare libc_nano (Arch)
+        run: |
+          mkdir -p extracted_arch_libs
+          ARCH_LIBC_PATH=$(arm-none-eabi-gcc -mcpu=cortex-m3 -mthumb --specs=nano.specs -print-file-name=libc_nano.a)
+          ARCH_NOSYS_PATH=$(arm-none-eabi-gcc -mcpu=cortex-m3 -mthumb --specs=nano.specs -print-file-name=libnosys.a)
+          
+          echo "Found Arch libc_nano at: $ARCH_LIBC_PATH"
+          cp "$ARCH_LIBC_PATH" extracted_arch_libs/libc_nano.a
+          [ -f "$ARCH_NOSYS_PATH" ] && cp "$ARCH_NOSYS_PATH" extracted_arch_libs/libnosys.a
+
+          arm-none-eabi-ar -t extracted_arch_libs/libc_nano.a > extracted_arch_libs/arch_libc_contents.txt
+
+      - name: Upload Arch Artifacts (Binaries & Libs)
+        uses: actions/upload-artifact@v7
+        with:
+          name: Arch-Build-and-Libc
+          path: |
+            src/build/MDO1A/*.bin
+            src/build/MDO1A/*.elf
+            src/build/MDO1A/*.map
+            extracted_arch_libs/*
+          retention-days: 2
+
+  ubuntu-build:
+    name: Build & Extract Libs (Ubuntu Host)
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Setup Ubuntu Toolchain
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y \
+            git \
+            make \
+            python3 \
+            gcc-arm-none-eabi \
+            binutils-arm-none-eabi \
+            libnewlib-arm-none-eabi
+
+      - name: Checkout Repository
+        uses: actions/checkout@v7
+        with:
+          submodules: recursive
+          fetch-depth: 0
+
+      - name: Build Bootloader (Ubuntu)
+        run: make -C ./src all
+
+      - name: Locate & Prepare libc_nano (Ubuntu)
+        run: |
+          mkdir -p extracted_ubuntu_libs
+          UBUNTU_LIBC_PATH=$(arm-none-eabi-gcc -mcpu=cortex-m3 -mthumb --specs=nano.specs -print-file-name=libc_nano.a)
+          UBUNTU_NOSYS_PATH=$(arm-none-eabi-gcc -mcpu=cortex-m3 -mthumb --specs=nano.specs -print-file-name=libnosys.a)
+
+          echo "Found Ubuntu libc_nano at: $UBUNTU_LIBC_PATH"
+          cp "$UBUNTU_LIBC_PATH" extracted_ubuntu_libs/libc_nano.a
+          [ -f "$UBUNTU_NOSYS_PATH" ] && cp "$UBUNTU_NOSYS_PATH" extracted_ubuntu_libs/libnosys.a
+
+          arm-none-eabi-ar -t extracted_ubuntu_libs/libc_nano.a > extracted_ubuntu_libs/ubuntu_libc_contents.txt
+
+      - name: Upload Ubuntu Artifacts (Binaries & Libs)
+        uses: actions/upload-artifact@v7
+        with:
+          name: Ubuntu-Build-and-Libc
+          path: |
+            src/build/MDO1A/*.bin
+            src/build/MDO1A/*.elf
+            src/build/MDO1A/*.map
+            extracted_ubuntu_libs/*
+          retention-days: 2
