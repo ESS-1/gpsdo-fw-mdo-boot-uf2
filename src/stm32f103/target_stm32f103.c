@@ -25,7 +25,9 @@
 #include <libopencm3/stm32/st_usbfs.h>
 #include <libopencm3/stm32/flash.h>
 #include <libopencm3/stm32/desig.h>
+#include <libopencm3/stm32/crc.h>
 #include <libopencm3/cm3/scb.h>
+#include <string.h>
 
 #include "target.h"
 #include "config.h"
@@ -36,8 +38,20 @@
 #include "bootlog.h"
 #include "flashmap.h"
 #include "colors.h"
+#include "app_metadata.h"
 
 _Static_assert((TOTAL_FLASH_SIZE >= BOOTLOADER_SIZE), "Incompatible flash size");
+
+
+typedef enum {
+    APP_STATUS_VALID        = 0,
+    APP_STATUS_NO_APP       = 1,
+    APP_STATUS_INVALID_HWID = 2,
+    APP_STATUS_CRC_ERROR    = 3,
+} AppStatus;
+
+static AppStatus      g_appStatus   = 0;
+static app_metadata_t g_appMetadata = { 0 };
 
 
 static void target_error_handler(void)
@@ -276,7 +290,102 @@ static void target_get_flash_info_str(char *buf, size_t maxChars)
     *p = '\0';
 }
 
-void target_init(AppStatus appStatus)
+static uint32_t target_calculate_crc(uint32_t startAddr, uint32_t endAddr) {
+    // Enable the CRC peripheral clock and reset the CRC module
+    rcc_periph_clock_enable(RCC_CRC);
+    crc_reset();
+
+    // Calculate the CRC32 of the application region
+    uint32_t crc = crc_calculate_block((uint32_t*)startAddr, (endAddr - startAddr) / sizeof(uint32_t));
+
+    // Disable the CRC peripheral clock and reset the CRC module
+    crc_reset();
+    rcc_periph_clock_disable(RCC_CRC);
+
+    // Return the calculated CRC value
+    return crc;
+}
+
+bool target_read_application(void) {
+    uint32_t appBaseAddr = (FLASH_BASE + BOOTLOADER_SIZE);
+    uint32_t appEndAddr = (FLASH_BASE + TOTAL_FLASH_SIZE - FLASH_EEPROM_SIZE); // Points to a byte right after the last byte of the app region
+    const uint32_t sizeOfCrc32 = sizeof(uint32_t);
+
+    // Read the application metadata
+    g_appMetadata = *(app_metadata_t*)(appEndAddr - sizeof(app_metadata_t) - sizeOfCrc32);
+
+    g_appStatus = APP_STATUS_VALID;
+
+    // Check if the application is present by verifying the initial stack pointer value
+    if ((*(uint32_t*)appBaseAddr & 0x2FFE0000) != 0x20000000) {
+        g_appStatus = APP_STATUS_NO_APP;
+    } else {
+        // Check the hardware ID (not null-terminated!)
+        const char expectedHwid[HARDWARE_ID_SIZE] __attribute__((nonstring)) = BOARD_HWID;
+        if (memcmp(g_appMetadata.hardware_id, expectedHwid, HARDWARE_ID_SIZE) != 0) {
+            g_appStatus = APP_STATUS_INVALID_HWID;
+        } else {
+            // Check the application CRC
+            const uint32_t expectedCrc = *(uint32_t*)(appEndAddr - sizeOfCrc32);
+            if (target_calculate_crc(appBaseAddr, appEndAddr - sizeOfCrc32) != expectedCrc) {
+                g_appStatus = APP_STATUS_CRC_ERROR;
+            }
+        }
+    }
+
+    return (g_appStatus == APP_STATUS_VALID);
+}
+
+static void target_log_app_info()
+{
+    // Log the app status
+    switch (g_appStatus) {
+        case APP_STATUS_NO_APP:
+            bootlog_add("APP is missing!", BOOTLOG_MSG_TYPE_ERROR);
+            break;
+        case APP_STATUS_INVALID_HWID:
+            bootlog_add("APP HWID mismatch!", BOOTLOG_MSG_TYPE_ERROR);
+            break;
+        case APP_STATUS_CRC_ERROR:
+            bootlog_add("APP CRC error!", BOOTLOG_MSG_TYPE_ERROR);
+            break;
+        case APP_STATUS_VALID:
+            break;
+    }
+
+    if (g_appStatus != APP_STATUS_NO_APP)
+    {
+        // Show the app version
+        {
+            // Format the version string with a prefix
+            const char prefix[] = "APP ver.: ";
+
+            char message[sizeof(prefix) + APP_VERSION_SIZE] = { 0 };
+            strncpy(message, prefix, sizeof(message) - 1);
+            // 'app_version' is not null-terminated, so set the character count carefully!
+            strncat(message, g_appMetadata.app_version, APP_VERSION_SIZE);
+
+            // Add the version string to the boot log
+            bootlog_add(message, BOOTLOG_MSG_TYPE_INFO);
+        }
+
+        // Show the HWID
+        {
+            // Format the HWID string with a prefix
+            const char prefix[] = "APP HWID: ";
+
+            char message[sizeof(prefix) + HARDWARE_ID_SIZE] = { 0 };
+            strncpy(message, prefix, sizeof(message) - 1);
+            // 'hardware_id' is not null-terminated, so set the character count carefully!
+            strncat(message, g_appMetadata.hardware_id, HARDWARE_ID_SIZE);
+
+            // Add the HWID string to the boot log
+            bootlog_add(message, BOOTLOG_MSG_TYPE_INFO);
+        }
+    }
+}
+
+void target_init()
 {
     // Init systick for 8MHz HSI and 8MHz SYSCLK
     systick_init(8000000);
@@ -287,24 +396,15 @@ void target_init(AppStatus appStatus)
     // Init LCD
     target_lcd_init();
 
-    // Log the app status
-    switch (appStatus) {
-        case APP_STATUS_NO_APP:
-            bootlog_add("APP is missing!", BOOTLOG_MSG_TYPE_ERROR);
-            break;
-        case APP_STATUS_CRC_ERROR:
-            bootlog_add("APP CRC error!", BOOTLOG_MSG_TYPE_ERROR);
-            break;
-        case APP_STATUS_VALID:
-            break;
-    }
-
-    // Init bootlog
+    // Log bootloader info
     bootlog_add("BOOT MODE", BOOTLOG_MSG_TYPE_HIGHLIGHTED);
     bootlog_add("Ver. " UF2_INFO_VERSION "-" UF2_VERSION, BOOTLOG_MSG_TYPE_INFO);
     char flashInfo[23] = { '\0' };
     target_get_flash_info_str(flashInfo, sizeof(flashInfo) / sizeof(flashInfo[0]));
     bootlog_add(flashInfo, BOOTLOG_MSG_TYPE_INFO);
+
+    // Log application info
+    target_log_app_info();
 
     // Setup OCXO clock
     target_pll_init();

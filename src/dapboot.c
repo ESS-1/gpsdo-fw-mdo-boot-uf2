@@ -32,14 +32,6 @@ static inline void __set_MSP(uint32_t topOfMainStack) {
     __asm__ volatile("msr msp, %0" : : "r" (topOfMainStack));
 }
 
-static AppStatus get_application_status(void) {
-    if ((*(volatile uint32_t *)(FLASH_BASE + BOOTLOADER_SIZE) & 0x2FFE0000) != 0x20000000) {
-        return APP_STATUS_NO_APP;
-    }
-
-    return APP_STATUS_VALID;
-}
-
 static void jump_to_application(void) __attribute__ ((noreturn));
 
 static void jump_to_application(void) {
@@ -63,10 +55,10 @@ int main(void) {
     bool isButtonPressed = target_is_button_pressed();
     target_gpio_disable();
 
-    AppStatus appStatus = get_application_status();
+    bool isAppValid = target_read_application();
 
     // Jump to the app if the button is not pressed and the app is valid
-    if (!isButtonPressed && appStatus == APP_STATUS_VALID) {
+    if (!isButtonPressed && isAppValid) {
          jump_to_application();
          return 0;
     }
@@ -74,7 +66,7 @@ int main(void) {
     // Bootloader mode
     {
         // Enable and init peripherals
-        target_init(appStatus);
+        target_init();
 
         // Setup USB
         {
