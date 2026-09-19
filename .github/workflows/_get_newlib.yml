@@ -1,0 +1,46 @@
+name: Download Raw Newlib Packages
+
+on:
+  workflow_dispatch:
+
+jobs:
+  arch-package:
+    name: Download Arch Linux Package
+    runs-on: ubuntu-latest
+    container:
+      image: archlinux:latest
+
+    steps:
+      - name: Download .pkg.tar.zst
+        run: |
+          sed -i 's/CheckSpace/#CheckSpace/' /etc/pacman.conf
+          echo 'Server = https://archive.archlinux.org/repos/2026/09/12/$repo/os/$arch' > /etc/pacman.d/mirrorlist
+          pacman -Syy --noconfirm
+          mkdir -p /tmp/pkg-arch
+          pacman -Sw --noconfirm --cachedir /tmp/pkg-arch arm-none-eabi-newlib
+
+      - name: Upload Arch Package
+        uses: actions/upload-artifact@v7
+        with:
+          name: arch-newlib-raw-package
+          path: /tmp/pkg-arch/*.pkg.tar.zst
+          retention-days: 3
+
+  ubuntu-package:
+    name: Download Ubuntu Package
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Download .deb
+        run: |
+          sudo apt-get update
+          mkdir -p /tmp/pkg-ubuntu
+          cd /tmp/pkg-ubuntu
+          apt-get download libnewlib-arm-none-eabi
+
+      - name: Upload Ubuntu Package
+        uses: actions/upload-artifact@v7
+        with:
+          name: ubuntu-newlib-raw-package
+          path: /tmp/pkg-ubuntu/*.deb
+          retention-days: 3
