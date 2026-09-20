@@ -114,7 +114,8 @@ $(LDSCRIPT):
     endif
 
 $(LIB_DIR)/lib$(LIBNAME).a:
-	$(Q)$(MAKE) -C $(OPENCM3_DIR) TARGETS="$(LIB_TARGETS)"
+	# Build libopencm3 with LTO
+	$(Q)CFLAGS="-flto -ffat-lto-objects" AR="arm-none-eabi-gcc-ar" RANLIB="arm-none-eabi-gcc-ranlib" $(MAKE) -C $(OPENCM3_DIR) TARGETS="$(LIB_TARGETS)"
 
 locm3: $(LIB_DIR)/lib$(LIBNAME).a
 
