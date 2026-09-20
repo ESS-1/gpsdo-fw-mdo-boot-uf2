@@ -151,7 +151,7 @@ static void target_pll_i2c_init(void)
 
     // Apply pin remapping if defined
 #ifdef PLL_I2C_AFIO_MAPR
-    AFIO_MAPR |= PLL_I2C_AFIO_MAPR;
+    gpio_primary_remap(0, PLL_I2C_AFIO_MAPR);
 #endif
 
     // Configure I2C GPIO as Alternate Function Open-Drain (2 MHz)
