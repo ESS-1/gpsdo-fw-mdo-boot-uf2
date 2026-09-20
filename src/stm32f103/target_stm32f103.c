@@ -440,8 +440,29 @@ const usbd_driver* target_usb_init(void) {
     return &st_usbfs_v1_usb_driver;
 }
 
-void target_get_serial_number(char* dest, size_t max_chars) {
-    desig_get_unique_id_as_string(dest, max_chars+1);
+void target_get_serial_number(char* dest, size_t dest_len) {
+    if (dest_len == 0) {
+        return;
+    }
+
+    uint32_t uid[3] = { 0 };
+    desig_get_unique_id(uid);
+
+    --dest_len;
+    if (dest_len > sizeof(uid) * 2) {
+        dest_len = sizeof(uid) * 2;
+    }
+
+    uint8_t* uid_bytes = (uint8_t*)uid;
+
+    for (uint32_t i = 0; i < dest_len; ++i) {
+        uint8_t b = uid_bytes[i >> 1];
+        uint8_t nibble = (i & 1) ? (b & 0x0F) : (b >> 4);
+
+        dest[i] = nibble + (nibble < 10 ? '0' : 'A' - 10);
+    }
+
+    dest[dest_len] = '\0';
 }
 
 void target_relocate_vector_table(void) {

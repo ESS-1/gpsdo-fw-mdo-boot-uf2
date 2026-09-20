@@ -70,9 +70,9 @@ int main(void) {
 
         // Setup USB
         {
-            char serial[USB_SERIAL_NUM_LENGTH+1];
+            char serial[USB_SERIAL_NUM_LENGTH + 1];
             serial[0] = '\0';
-            target_get_serial_number(serial, USB_SERIAL_NUM_LENGTH);
+            target_get_serial_number(serial, USB_SERIAL_NUM_LENGTH + 1);
             usb_set_serial_number(serial);
         }
 
