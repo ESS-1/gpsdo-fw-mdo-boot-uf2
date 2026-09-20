@@ -16,10 +16,12 @@
 
 -include local.mk
 
+# Ignore chip IDCODE in 'erase' and 'program' targets
 IGNORE_IDCODE ?= 0
-ifeq ($(IGNORE_IDCODE),1)
-    OOCD_CPUTAPID := -c "set CPUTAPID 0"
-endif
+
+# Build with Link-Time Optimization
+LTO ?= 1
+
 
 OPENCM3_DIR = ../libopencm3
 
@@ -60,6 +62,10 @@ clean::
 
 include rules.mk
 
+ifeq ($(IGNORE_IDCODE),1)
+  OOCD_CPUTAPID := -c "set CPUTAPID 0"
+endif
+
 erase:
 	$(OOCD) -f $(OOCD_INTERFACE) $(OOCD_CPUTAPID) -f $(OOCD_TARGET) \
             -c "init" -c "reset init" \
@@ -92,11 +98,7 @@ CPPFLAGS += -I$(TARGET_SPEC_DIR)/
 
 # Add BOOTLOADER_SIZE to the preprocessor definitions and linker flags
 ifndef BOOTLOADER_SIZE
-$(error [ERROR] BOOTLOADER_SIZE is not defined in targets.mk for TARGET=$(TARGET))
+  $(error [ERROR] BOOTLOADER_SIZE is not defined in targets.mk for TARGET=$(TARGET))
 endif
 CPPFLAGS += -DBOOTLOADER_SIZE=$(BOOTLOADER_SIZE)
 LDFLAGS += -Wl,--defsym=__BOOTLOADER_SIZE__=$(BOOTLOADER_SIZE)
-
-# Enable Link-Time Optimization
-CFLAGS  += -flto
-LDFLAGS += -flto

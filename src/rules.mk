@@ -22,22 +22,22 @@
 
 # Be silent per default, but 'make V=1' will show all compiler calls.
 ifneq ($(V),1)
-Q              := @
-NULL           := 2>/dev/null
+  Q           := @
+  NULL        := 2>/dev/null
 endif
 
 ####################################################################
 # Target Architecture flags
 ifeq ($(ARCH),STM32F1)
-    LIBNAME      = opencm3_stm32f1
-    LIB_TARGETS  = stm32/f1
-    DEFS        += -DSTM32F1
-    FP_FLAGS    ?= -msoft-float
-    ARCH_FLAGS   = -mthumb -mcpu=cortex-m3 $(FP_FLAGS) -mfix-cortex-m3-ldrd
-    OOCD_TARGET ?= target/stm32f1x.cfg
-    FLASH_BASE  ?= 0x08000000
+  LIBNAME      = opencm3_stm32f1
+  LIB_TARGETS  = stm32/f1
+  DEFS        += -DSTM32F1
+  FP_FLAGS    ?= -msoft-float
+  ARCH_FLAGS   = -mthumb -mcpu=cortex-m3 $(FP_FLAGS) -mfix-cortex-m3-ldrd
+  OOCD_TARGET ?= target/stm32f1x.cfg
+  FLASH_BASE  ?= 0x08000000
 else
-    $(error Target architecture $(ARCH) not supported)
+  $(error Target architecture $(ARCH) not supported)
 endif
 
 ####################################################################
@@ -70,6 +70,10 @@ CFLAGS      += -Wextra -Wshadow -Wimplicit-function-declaration
 CFLAGS      += -Wredundant-decls -Wmissing-prototypes -Wstrict-prototypes
 CFLAGS      += -fno-common -ffunction-sections -fdata-sections
 
+ifeq ($(LTO),1)
+  CFLAGS  += -flto
+endif
+
 ####################################################################
 # C preprocessor flags
 
@@ -88,6 +92,10 @@ LDFLAGS    += -T$(LDSCRIPT)
 LDFLAGS    += -Wl,-Map=$(*).map
 LDFLAGS    += -Wl,--gc-sections
 LDFLAGS    += -Wl,--print-memory-usage
+
+ifeq ($(LTO),1)
+  LDFLAGS += -flto
+endif
 
 ####################################################################
 # Used libraries
@@ -108,14 +116,17 @@ list: $(BUILD)/$(BINARY).list
 
 images: $(BUILD)/$(BINARY).images
 
-$(LDSCRIPT):
-    ifeq (,$(wildcard $(LDSCRIPT)))
-        $(error Unable to find specified linker script: $(LDSCRIPT))
-    endif
+ifeq (,$(wildcard $(LDSCRIPT)))
+  $(error Unable to find specified linker script: $(LDSCRIPT))
+endif
+
+LIB_CMD_PREFIX :=
+ifeq ($(LTO),1)
+  LIB_CMD_PREFIX := CFLAGS="-flto -ffat-lto-objects" AR="arm-none-eabi-gcc-ar" RANLIB="arm-none-eabi-gcc-ranlib"
+endif
 
 $(LIB_DIR)/lib$(LIBNAME).a:
-	# Build libopencm3 with LTO
-	$(Q)CFLAGS="-flto -ffat-lto-objects" AR="arm-none-eabi-gcc-ar" RANLIB="arm-none-eabi-gcc-ranlib" $(MAKE) -C $(OPENCM3_DIR) TARGETS="$(LIB_TARGETS)"
+	$(Q)$(LIB_CMD_PREFIX) $(MAKE) -C $(OPENCM3_DIR) TARGETS="$(LIB_TARGETS)"
 
 locm3: $(LIB_DIR)/lib$(LIBNAME).a
 
