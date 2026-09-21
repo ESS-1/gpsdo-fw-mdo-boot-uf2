@@ -33,6 +33,7 @@ extern bool target_is_button_pressed(void);
 extern bool target_read_application(void);
 extern void target_init();
 extern const usbd_driver* target_usb_init(void);
+extern void target_usb_pullup_enable(bool enable);
 extern void target_get_serial_number(char* dest, size_t dest_len);
 extern void target_relocate_vector_table(void);
 extern void target_flash_unlock(void);

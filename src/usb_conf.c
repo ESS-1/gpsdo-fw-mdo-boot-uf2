@@ -121,5 +121,8 @@ usbd_device* usb_setup(void) {
                                       usb_strings, num_strings,
                                       usbd_control_buffer, sizeof(usbd_control_buffer));
 
+    // Enable USB pullup to connect
+    target_usb_pullup_enable(true);
+
     return usbd_dev;
 }

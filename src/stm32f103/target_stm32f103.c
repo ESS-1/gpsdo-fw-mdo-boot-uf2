@@ -54,12 +54,11 @@ static AppStatus      g_appStatus   = 0;
 static app_metadata_t g_appMetadata = { 0 };
 
 
-static void target_error_handler(void)
+static void target_error_handler(void) __attribute__((noreturn));
+static void target_error_handler(void) 
 {
     __asm__("cpsid i"); // Disable IRQ
-    while (1) {
-        __asm__("nop");
-    }
+    while (1) {}
 }
 
 void target_gpio_enable(void) {
@@ -96,6 +95,14 @@ bool target_is_button_pressed(void) {
         gpio_clear(BUTTON_GPIO_PORT, BUTTON_GPIO_PIN);
     } else {
         gpio_set(BUTTON_GPIO_PORT, BUTTON_GPIO_PIN);
+    }
+
+    // Wait for voltage to settle
+    {
+        int t = 1024;
+        while (--t) {
+            __asm__ volatile("nop");
+        }
     }
 
     // Check if the user button is held down
@@ -417,20 +424,8 @@ void target_init()
     flashmap_init();
 }
 
-static inline void target_usb_pullup_enable(bool enable) {
-    if ((USB_PULLUP_ACTIVE_HIGH != 0) == enable) {
-        gpio_set(USB_PULLUP_GPIO_PORT, USB_PULLUP_GPIO_PIN);
-    }
-    else {
-        gpio_clear(USB_PULLUP_GPIO_PORT, USB_PULLUP_GPIO_PIN);
-    }
-}
-
 const usbd_driver* target_usb_init(void) {
     rcc_periph_reset_pulse(RST_USB);
-
-    // Enable USB pullup to connect
-    target_usb_pullup_enable(true);
 
     const uint8_t mode = GPIO_MODE_OUTPUT_2_MHZ;
     const uint8_t conf = (USB_PULLUP_OPEN_DRAIN ? GPIO_CNF_OUTPUT_OPENDRAIN
@@ -438,6 +433,15 @@ const usbd_driver* target_usb_init(void) {
     gpio_set_mode(USB_PULLUP_GPIO_PORT, mode, conf, USB_PULLUP_GPIO_PIN);
 
     return &st_usbfs_v1_usb_driver;
+}
+
+void target_usb_pullup_enable(bool enable) {
+    if ((USB_PULLUP_ACTIVE_HIGH != 0) == enable) {
+        gpio_set(USB_PULLUP_GPIO_PORT, USB_PULLUP_GPIO_PIN);
+    }
+    else {
+        gpio_clear(USB_PULLUP_GPIO_PORT, USB_PULLUP_GPIO_PIN);
+    }
 }
 
 void target_get_serial_number(char* dest, size_t dest_len) {
