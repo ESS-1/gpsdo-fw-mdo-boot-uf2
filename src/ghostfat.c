@@ -61,7 +61,7 @@ const char indexFile[] = //
     "<html>"
     "<body>"
     "<script>\n"
-    "location.replace(\"" INDEX_URL "\");\n"
+    "location.replace(\"" FIRMWARE_URL "\");\n"
     "</script>"
     "</body>"
     "</html>\n";

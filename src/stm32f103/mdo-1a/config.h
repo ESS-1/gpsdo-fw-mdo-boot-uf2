@@ -3,11 +3,6 @@
 #ifndef CONFIG_H_INCLUDED
 #define CONFIG_H_INCLUDED
 
-#define UF2_FAMILY             0xCA8A701A // MDO-1A family ID
-
-#define TOTAL_FLASH_SIZE       0x20000 // 128K
-#define FLASH_EEPROM_SIZE      0x400   // 1K at the end of flash
-
 #define UF2_NUM_BLOCKS         8000 // UF2 drive size in blocks (512 bytes each)
 
 #define BUTTON_GPIO_PORT       GPIOB
@@ -26,8 +21,6 @@
 #define VENDOR_ID              "Generic"
 #define VOLUME_LABEL           "MDO-1A     " // Should be 11 characters long, trailed with spaces
 #define PRODUCT_NAME           "MDO-1A GPSDO"
-#define BOARD_HWID             "MDO-1A*001"
-#define INDEX_URL              "https://github.com/ESS-1/gpsdo-fw-mdo-1a"
 
 // PLL/OCXO pins
 #define OCXO_EN_PIN             GPIO6

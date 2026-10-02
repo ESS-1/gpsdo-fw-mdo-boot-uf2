@@ -315,11 +315,10 @@ static uint32_t target_calculate_crc(uint32_t startAddr, uint32_t endAddr) {
 
 bool target_read_application(void) {
     uint32_t appBaseAddr = (FLASH_BASE + BOOTLOADER_SIZE);
-    uint32_t appEndAddr = (FLASH_BASE + TOTAL_FLASH_SIZE - FLASH_EEPROM_SIZE); // Points to a byte right after the last byte of the app region
-    const uint32_t sizeOfCrc32 = sizeof(uint32_t);
+    uint32_t appEndAddr = (FLASH_BASE + TOTAL_FLASH_SIZE - EEPROM_SIZE); // Points to a byte right after the last byte of the app region
 
     // Read the application metadata
-    g_appMetadata = *(app_metadata_t*)(appEndAddr - sizeof(app_metadata_t) - sizeOfCrc32);
+    g_appMetadata = *(app_metadata_t*)(appEndAddr - APP_METADATA_SIZE);
 
     g_appStatus = APP_STATUS_VALID;
 
@@ -333,6 +332,7 @@ bool target_read_application(void) {
             g_appStatus = APP_STATUS_INVALID_HWID;
         } else {
             // Check the application CRC
+            const uint32_t sizeOfCrc32 = sizeof(uint32_t);
             const uint32_t expectedCrc = *(uint32_t*)(appEndAddr - sizeOfCrc32);
             if (target_calculate_crc(appBaseAddr, appEndAddr - sizeOfCrc32) != expectedCrc) {
                 g_appStatus = APP_STATUS_CRC_ERROR;

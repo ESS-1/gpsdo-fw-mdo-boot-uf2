@@ -56,7 +56,7 @@ void flashmap_init(void)
         uint16_t color;
         if (flash_offset < BOOTLOADER_SIZE) {
             color = COLOR_FLASHMAP_BLOCK_BL;
-        } else if (flash_offset < (TOTAL_FLASH_SIZE - FLASH_EEPROM_SIZE)) {
+        } else if (flash_offset < (TOTAL_FLASH_SIZE - EEPROM_SIZE)) {
             color = COLOR_FLASHMAP_BLOCK_APP;
         } else {
             color = COLOR_FLASHMAP_BLOCK_EE;
