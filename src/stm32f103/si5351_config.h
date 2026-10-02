@@ -6,8 +6,8 @@
 
 #define SI5351_ADDRESS 0x60
 
-__attribute__((weak)) I2C_HandleTypeDef hi2c1 = { .instance = PLL_I2C };
-#define I2C_HANDLE                      hi2c1
+__attribute__((weak)) I2C_HandleTypeDef h_pll_i2c = { .instance = PLL_I2C };
+#define I2C_HANDLE                      h_pll_i2c
 
 #define SI5351_XTAL_FREQ 10000000
 

@@ -4,8 +4,8 @@
 #include "config.h"
 #include "systick_hal.h"
 
-__attribute__((weak)) SPI_HandleTypeDef hspi1 = { .instance = LCD_SPI };
-#define ST7735_SPI_PORT                 hspi1
+__attribute__((weak)) SPI_HandleTypeDef h_lcd_spi = { .instance = LCD_SPI };
+#define ST7735_SPI_PORT                 h_lcd_spi
 
 #define ST7735_RES_Pin       LCD_RES_PIN
 #define ST7735_RES_GPIO_Port LCD_RES_GPIO_PORT
