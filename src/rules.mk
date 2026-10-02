@@ -87,7 +87,7 @@ CPPFLAGS    += -I$(INCLUDE_DIR) $(DEFS)
 LDFLAGS    += --static -nostartfiles
 LDFLAGS    += --specs=nano.specs
 LDFLAGS    += -L$(LIB_DIR)
-LDFLAGS    += -L$(LIB_DIR)/stm32/f1
+LDFLAGS    += -L$(LIB_DIR)/$(LIB_TARGETS)
 LDFLAGS    += -T$(LDSCRIPT)
 LDFLAGS    += -Wl,-Map=$(*).map
 LDFLAGS    += -Wl,--gc-sections

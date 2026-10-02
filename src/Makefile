@@ -40,6 +40,9 @@ SRCS += $(wildcard $(TARGET_COMMON_DIR)/*.c)
 SRCS += $(wildcard $(TARGET_SPEC_DIR)/*.c)
 SRCS += $(wildcard $(HAL_SHIM_DIR)/*.c)
 
+# Add MDO-1A configuration include directory
+LIB_MDO1A_CONFIG_DIR = ../lib/mdo-1a-config/include
+
 # Add ST7735 lib
 LIB_ST7735_DIR = ../lib/st7735
 SRCS += $(wildcard $(LIB_ST7735_DIR)/*.c)
@@ -82,6 +85,9 @@ OBJS := $(sort $(OBJS))
 
 # Add the base directory to the header search path
 CPPFLAGS += -I.
+
+# Add MDO-1A configuration include directory to the header search path
+CPPFLAGS += -I$(LIB_MDO1A_CONFIG_DIR)
 
 # Add ST7735 lib directory to the header search path
 CPPFLAGS += -I$(LIB_ST7735_DIR)

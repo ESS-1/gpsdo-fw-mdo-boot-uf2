@@ -46,8 +46,7 @@ HAL_StatusTypeDef HAL_I2C_IsDeviceReady(I2C_HandleTypeDef* hi2c, uint16_t DevAdd
             while (I2C_SR2(i2c) & I2C_SR2_BUSY) {}
 
             return HAL_OK;
-        }
-        else {
+        } else {
             // Device did not acknowledge (NACK): AF flag is set
             // Generate STOP condition
             i2c_send_stop(i2c);

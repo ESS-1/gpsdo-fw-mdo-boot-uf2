@@ -20,6 +20,8 @@ ifeq ($(TARGET),MDO1A)
   HAL_SHIM_DIR        := ./stm32f103/hal_shim
   LDSCRIPT            := ./stm32f103/stm32f103x8.ld
   ARCH                 = STM32F1
+
+  include                ../lib/mdo-1a-config/mdo1a.mk
   BOOTLOADER_SIZE     := 0x3800
 endif
 
