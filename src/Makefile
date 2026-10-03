@@ -41,7 +41,7 @@ SRCS += $(wildcard $(TARGET_SPEC_DIR)/*.c)
 SRCS += $(wildcard $(HAL_SHIM_DIR)/*.c)
 
 # Add MDO-1A configuration include directory
-LIB_MDO1A_CONFIG_DIR = ../lib/mdo-1a-config/include
+LIB_MDO1A_CONFIG_DIR = ../lib/mdo-1a-config
 
 # Add ST7735 lib
 LIB_ST7735_DIR = ../lib/st7735
@@ -87,7 +87,7 @@ OBJS := $(sort $(OBJS))
 CPPFLAGS += -I.
 
 # Add MDO-1A configuration include directory to the header search path
-CPPFLAGS += -I$(LIB_MDO1A_CONFIG_DIR)
+CPPFLAGS += -I$(LIB_MDO1A_CONFIG_DIR)/include
 
 # Add ST7735 lib directory to the header search path
 CPPFLAGS += -I$(LIB_ST7735_DIR)
@@ -102,12 +102,18 @@ CPPFLAGS += -I$(HAL_SHIM_DIR)/
 CPPFLAGS += -I$(TARGET_COMMON_DIR)/
 CPPFLAGS += -I$(TARGET_SPEC_DIR)/
 
-# Add BOOTLOADER_SIZE to the preprocessor definitions and linker flags
+# Add BOOTLOADER_SIZE and BOOTLOADER_DATA_SIZE to the preprocessor definitions and linker flags
 ifndef BOOTLOADER_SIZE
   $(error [ERROR] BOOTLOADER_SIZE is not defined in targets.mk for TARGET=$(TARGET))
 endif
 CPPFLAGS += -DBOOTLOADER_SIZE=$(BOOTLOADER_SIZE)
 LDFLAGS += -Wl,--defsym=__BOOTLOADER_SIZE__=$(BOOTLOADER_SIZE)
+
+ifndef BOOTLOADER_DATA_SIZE
+  $(error [ERROR] BOOTLOADER_DATA_SIZE is not defined in targets.mk for TARGET=$(TARGET))
+endif
+CPPFLAGS += -DBOOTLOADER_DATA_SIZE=$(BOOTLOADER_DATA_SIZE)
+LDFLAGS += -Wl,--defsym=__BOOTLOADER_DATA_SIZE__=$(BOOTLOADER_DATA_SIZE)
 
 # Add EEPROM_SIZE, APP_METADATA_SIZE, TOTAL_FLASH_SIZE, UF2_FAMILY, BOARD_HWID, and FIRMWARE_URL to the preprocessor definitions
 CPPFLAGS += -DEEPROM_SIZE=$(EEPROM_SIZE)

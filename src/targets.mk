@@ -15,7 +15,7 @@
 ## CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
 
 ifeq ($(TARGET),MDO1A)
-  include                ../lib/mdo-1a-config/mdo1a.mk
+  include                ../lib/mdo-1a-config/mdo.config.mk
   TARGET_COMMON_DIR   := ./stm32f103
   TARGET_SPEC_DIR     := ./stm32f103/mdo-1a
   HAL_SHIM_DIR        := ./stm32f103/hal_shim

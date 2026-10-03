@@ -3,6 +3,8 @@
 
 #include "config.h"
 #include "systick_hal.h"
+#include "spi.h"
+#include "boot_data.h"
 
 __attribute__((weak)) SPI_HandleTypeDef h_lcd_spi = { .instance = LCD_SPI };
 #define ST7735_SPI_PORT                 h_lcd_spi
@@ -13,6 +15,8 @@ __attribute__((weak)) SPI_HandleTypeDef h_lcd_spi = { .instance = LCD_SPI };
 #define ST7735_CS_GPIO_Port  LCD_CS_GPIO_PORT
 #define ST7735_DC_Pin        LCD_DC_PIN
 #define ST7735_DC_GPIO_Port  LCD_DC_GPIO_PORT
+
+#define ST7735_INIT_CMDS     lcd_init_commands
 
 // 160x80 with ST7735S (no color inversion), rotate left
 #define ST7735_IS_160X80_NOINV 1

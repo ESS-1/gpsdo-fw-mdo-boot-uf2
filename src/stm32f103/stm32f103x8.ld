@@ -22,8 +22,19 @@
 /* Define memory regions. */
 MEMORY
 {
-    rom (rx)  : ORIGIN = 0x08000000, LENGTH = __BOOTLOADER_SIZE__
-    ram (rwx) : ORIGIN = 0x20000000, LENGTH = 20K
+    rom (rx)       : ORIGIN = 0x08000000, LENGTH = __BOOTLOADER_SIZE__ - __BOOTLOADER_DATA_SIZE__
+    boot_data (rx) : ORIGIN = 0x08000000 + (__BOOTLOADER_SIZE__ - __BOOTLOADER_DATA_SIZE__), LENGTH = __BOOTLOADER_DATA_SIZE__
+    ram (rwx)      : ORIGIN = 0x20000000, LENGTH = 20K
+}
+
+SECTIONS
+{
+    .boot_data : ALIGN(4)
+    {
+        KEEP(*(.boot_data.header))
+        KEEP(*(.boot_data))
+        . = ALIGN(4);
+    } > boot_data
 }
 
 /* Include the common ld script. */

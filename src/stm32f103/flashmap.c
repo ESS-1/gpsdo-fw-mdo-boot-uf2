@@ -1,6 +1,7 @@
 #include <stdint.h>
 #include "flashmap.h"
 #include "st7735.h"
+#include "st7735_config.h"
 #include "compressed_font.h"
 #include "colors.h"
 #include "config.h"
@@ -13,8 +14,8 @@
 #define GRID_CELL_SIZE    3
 #define GRID_WIDTH        (GRID_COLUMNS*GRID_CELL_SIZE + (GRID_COLUMNS+1))
 #define GRID_HEIGHT       (GRID_ROWS   *GRID_CELL_SIZE + (GRID_ROWS   +1))
-#define GRID_X            (160-GRID_WIDTH)
-#define GRID_Y            (80 -GRID_HEIGHT)
+#define GRID_X            (ST7735_WIDTH -GRID_WIDTH)
+#define GRID_Y            (ST7735_HEIGHT-GRID_HEIGHT)
 
 #define BYTES_PER_CELL    (TOTAL_FLASH_SIZE / (GRID_ROWS * GRID_COLUMNS))
 

@@ -38,7 +38,7 @@
 #include "bootlog.h"
 #include "flashmap.h"
 #include "colors.h"
-#include "app_metadata.h"
+#include "app_metadata_defs.h"
 
 _Static_assert((TOTAL_FLASH_SIZE >= BOOTLOADER_SIZE), "Incompatible flash size");
 
@@ -181,6 +181,7 @@ static void target_lcd_init(void)
     // Initialize and clear the LCD
     ST7735_Init();
     ST7735_FillScreen(COLOR_BG);
+    ST7735_EnableDisplay(true);
 }
 
 static bool target_pll_primary_out_init()
@@ -318,7 +319,7 @@ bool target_read_application(void) {
     uint32_t appEndAddr = (FLASH_BASE + TOTAL_FLASH_SIZE - EEPROM_SIZE); // Points to a byte right after the last byte of the app region
 
     // Read the application metadata
-    g_appMetadata = *(app_metadata_t*)(appEndAddr - APP_METADATA_SIZE);
+    g_appMetadata = *(app_metadata_t* const)(appEndAddr - APP_METADATA_SIZE);
 
     g_appStatus = APP_STATUS_VALID;
 
