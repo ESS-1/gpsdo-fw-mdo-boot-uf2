@@ -319,12 +319,12 @@ bool target_read_application(void) {
     uint32_t appEndAddr = (FLASH_BASE + TOTAL_FLASH_SIZE - EEPROM_SIZE); // Points to a byte right after the last byte of the app region
 
     // Read the application metadata
-    g_appMetadata = *(app_metadata_t* const)(appEndAddr - APP_METADATA_SIZE);
+    g_appMetadata = *G_APP_METADATA;
 
     g_appStatus = APP_STATUS_VALID;
 
     // Check if the application is present by verifying the initial stack pointer value
-    if ((*(uint32_t*)appBaseAddr & 0x2FFE0000) != 0x20000000) {
+    if ((*(const volatile uint32_t*)appBaseAddr & 0x2FFE0000) != 0x20000000) {
         g_appStatus = APP_STATUS_NO_APP;
     } else {
         // Check the hardware ID (not null-terminated!)
@@ -333,9 +333,8 @@ bool target_read_application(void) {
             g_appStatus = APP_STATUS_INVALID_HWID;
         } else {
             // Check the application CRC
-            const uint32_t sizeOfCrc32 = sizeof(uint32_t);
-            const uint32_t expectedCrc = *(uint32_t*)(appEndAddr - sizeOfCrc32);
-            if (target_calculate_crc(appBaseAddr, appEndAddr - sizeOfCrc32) != expectedCrc) {
+            const uint32_t expectedCrc = *G_APP_CRC;
+            if (target_calculate_crc(appBaseAddr, appEndAddr - APP_CRC_SIZE) != expectedCrc) {
                 g_appStatus = APP_STATUS_CRC_ERROR;
             }
         }
