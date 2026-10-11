@@ -116,9 +116,9 @@ __attribute__((section(".boot_data.header"), used)) const boot_data_t g_boot_dat
 
         .vcom_min             = 0x00,
         .vcom_max             = 0x1F,
+        .vcom_adjust_step     = 1,
         .vcom_default         = LCD_DEFAULT_VCOM,
-        .vcom_base_mv         = -400,
+        .vcom_offset_mv       = -400,
         .vcom_step_mv         = -25,
-        .reserved_1           = 0,
     },
 };
