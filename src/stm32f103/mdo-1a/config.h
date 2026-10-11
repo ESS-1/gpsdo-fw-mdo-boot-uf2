@@ -20,7 +20,6 @@
 
 #define VENDOR_ID              "Generic"
 #define VOLUME_LABEL           "MDO-1A     " // Should be 11 characters long, trailed with spaces
-#define PRODUCT_NAME           "MDO-1A GPSDO"
 
 // PLL/OCXO pins
 #define OCXO_EN_PIN             GPIO6
