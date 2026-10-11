@@ -44,6 +44,8 @@ __attribute__((section(".boot_data"), used)) const uint8_t boot_logo_41x60[] = {
     0x0B, 0xAF, 0x0B, 0xF0, 0xD0, 0x18, 0x4B, 0x18, 0xF0,
 };
 
+#define LCD_DEFAULT_VCOM 0x0F // -0.8V
+
 // LCD initialization commands
 __attribute__((section(".boot_data"), used)) const uint8_t lcd_init_commands[] = {
     17,                           // 17 commands in list:
@@ -74,7 +76,7 @@ __attribute__((section(".boot_data"), used)) const uint8_t lcd_init_commands[] =
       0x8A,                       //     Op-amp currents: AP = Medium Low; SAP = Small
       0xEE,
     ST7735_VMCTR1 , 1           , // 11: Power control, 1 arg, no delay:
-      0x0F,                       //     VCOM = -0.775V
+      LCD_DEFAULT_VCOM,           //     VCOM
     ST7735_INVOFF , 0           , // 12: Don't invert display, no args, no delay
     ST7735_MADCTL , 1           , // 13: Memory access control (directions), 1 arg:
       ST7735_ROTATION,            //     row addr/col addr, bottom to top refresh
@@ -108,8 +110,15 @@ __attribute__((section(".boot_data.header"), used)) const boot_data_t g_boot_dat
     },
 
     // LCD initialization commands
-    .display_init_commands = {
-        .commands        = lcd_init_commands,
-        .commands_length = sizeof(lcd_init_commands),
+    .display_config = {
+        .init_commands        = lcd_init_commands,
+        .init_commands_length = sizeof(lcd_init_commands),
+
+        .vcom_min             = 0x00,
+        .vcom_max             = 0x1F,
+        .vcom_default         = LCD_DEFAULT_VCOM,
+        .vcom_base_mv         = -400,
+        .vcom_step_mv         = -25,
+        .reserved_1           = 0,
     },
 };
