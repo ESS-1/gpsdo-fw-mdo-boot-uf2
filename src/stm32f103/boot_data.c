@@ -44,7 +44,7 @@ __attribute__((section(".boot_data"), used)) const uint8_t boot_logo_41x60[] = {
     0x0B, 0xAF, 0x0B, 0xF0, 0xD0, 0x18, 0x4B, 0x18, 0xF0,
 };
 
-#define LCD_DEFAULT_VCOM 0x0F // -0.8V
+#define LCD_DEFAULT_VCOM 0x0B // -0.7V
 
 // LCD initialization commands
 __attribute__((section(".boot_data"), used)) const uint8_t lcd_init_commands[] = {
@@ -63,7 +63,7 @@ __attribute__((section(".boot_data"), used)) const uint8_t lcd_init_commands[] =
     ST7735_PWCTR1 , 3           , //  6: Power control, 3 args, no delay:
       0xAB,                       //     AVDD = 5V; GVDD = 4.15V
       0x0B,                       //     GVCL = -4.15V
-      0x04,                       //     AUTO mode
+      0x04,                       //     2X mode
     ST7735_PWCTR2 , 1           , //  7: Power control, 1 arg, no delay:
       0xC5,                       //     V25 = 2.4V; VGL = -10V; VGH = 3*AVDD-0.5
     ST7735_PWCTR3 , 2           , //  8: Power control, 2 args, no delay:
