@@ -117,7 +117,7 @@ __attribute__((section(".boot_data.header"), used)) const boot_data_t g_boot_dat
         .init_commands_length = sizeof(lcd_init_commands),
 
         .vcom_min             = 0x00,
-        .vcom_max             = 0x1F,
+        .vcom_max             = 0x17,
         .vcom_adjust_step     = 1,
         .vcom_default         = LCD_DEFAULT_VCOM,
         .vcom_offset_mv       = -425,
