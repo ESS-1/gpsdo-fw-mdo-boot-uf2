@@ -44,55 +44,57 @@ __attribute__((section(".boot_data"), used)) const uint8_t boot_logo_41x60[] = {
     0x0B, 0xAF, 0x0B, 0xF0, 0xD0, 0x18, 0x4B, 0x18, 0xF0,
 };
 
-#define LCD_DEFAULT_VCOM 0x0B // -0.7V
+#define LCD_DEFAULT_VCOM 0x09 // -0.65V
 
 // LCD initialization commands
 __attribute__((section(".boot_data"), used)) const uint8_t lcd_init_commands[] = {
-    17,                           // 17 commands in list:
-    ST7735_SLPOUT , ST7735_DELAY, //  1: Out of sleep mode, 0 args, w/delay
+    18,                           // 18 commands in list:
+    ST7735_SLPOUT , ST7735_DELAY, //  1: Out of sleep mode, no args, w/delay
       130,                        //     130 ms delay
-    ST7735_FRMCTR1, 3           , //  2: Frame rate ctrl - normal mode, 3 args:
+    ST7735_FRMCTR1, 3           , //  2: Frame rate control - normal mode, 3 args, no delay:
       0x05, 0x3C, 0x3C,           //     ~60 Hz
-    ST7735_FRMCTR2, 3           , //  3: Frame rate control - idle mode, 3 args:
+    ST7735_FRMCTR2, 3           , //  3: Frame rate control - idle mode, 3 args, no delay:
       0x05, 0x3C, 0x3C,           //     ~60 Hz
-    ST7735_FRMCTR3, 6           , //  4: Frame rate ctrl - partial mode, 6 args:
+    ST7735_FRMCTR3, 6           , //  4: Frame rate control - partial mode, 6 args, no delay:
       0x05, 0x3C, 0x3C,           //     ~60 Hz
       0x05, 0x3C, 0x3C,           //     ~60 Hz
-    ST7735_INVCTR , 1           , //  5: Display inversion ctrl, 1 arg, no delay:
+    ST7735_INVCTR , 1           , //  5: Display inversion control, 1 arg, no delay:
       0x03,                       //     Dot inversion in normal mode; column inversion in others
-    ST7735_PWCTR1 , 3           , //  6: Power control, 3 args, no delay:
+    ST7735_PWCTR1 , 3           , //  6: Power control 1, 3 args, no delay:
       0xAB,                       //     AVDD = 5V; GVDD = 4.15V
       0x0B,                       //     GVCL = -4.15V
       0x04,                       //     2X mode
-    ST7735_PWCTR2 , 1           , //  7: Power control, 1 arg, no delay:
+    ST7735_PWCTR2 , 1           , //  7: Power control 2, 1 arg, no delay:
       0xC5,                       //     V25 = 2.4V; VGL = -10V; VGH = 3*AVDD-0.5
-    ST7735_PWCTR3 , 2           , //  8: Power control, 2 args, no delay:
+    ST7735_PWCTR3 , 2           , //  8: Power control - normal mode, 2 args, no delay:
       0x0A,                       //     Op-amp currents: AP = Medium Low; SAP = Small
       0x00,                       //     Boost frequency
-    ST7735_PWCTR4 , 2           , //  9: Power control, 2 args, no delay:
+    ST7735_PWCTR4 , 2           , //  9: Power control - idle mode, 2 args, no delay:
       0x8A,                       //     Op-amp currents: AP = Medium Low; SAP = Small
-      0x26,
-    ST7735_PWCTR5 , 2           , // 10: Power control, 2 args, no delay:
+      0x26,                       //     Boost frequency
+    ST7735_PWCTR5 , 2           , // 10: Power control - partial mode, 2 args, no delay:
       0x8A,                       //     Op-amp currents: AP = Medium Low; SAP = Small
-      0xEE,
-    ST7735_VMCTR1 , 1           , // 11: Power control, 1 arg, no delay:
+      0xEE,                       //     Boost frequency
+    ST7735_VMCTR1 , 1           , // 11: VCOM control, 1 arg, no delay:
       LCD_DEFAULT_VCOM,           //     VCOM
-    ST7735_INVOFF , 0           , // 12: Don't invert display, no args, no delay
-    ST7735_MADCTL , 1           , // 13: Memory access control (directions), 1 arg:
-      ST7735_ROTATION,            //     row addr/col addr, bottom to top refresh
-    ST7735_COLMOD , 1           , // 14: set color mode, 1 arg, no delay:
+    ST7735_INVOFF , 0           , // 12: No display inversion, no args, no delay
+    ST7735_MADCTL , 1           , // 13: Memory access control (directions), 1 arg, no delay:
+      ST7735_ROTATION,            //     Row/column order; refresh order; RGB-BGR order
+    ST7735_COLMOD , 1           , // 14: Color mode, 1 arg, no delay:
       0x05,                       //     16-bit color
-    ST7735_GMCTRP1, 16      ,     // 15: Gamma Adjustments (pos. polarity), 16 args, no delay:
+    ST7735_GMCTRP1, 16      ,     // 15: Gamma adjustments (pos. polarity), 16 args, no delay:
       0x07, 0x0E, 0x08, 0x07,
       0x10, 0x07, 0x02, 0x07,
       0x09, 0x0F, 0x25, 0x36,
       0x00, 0x08, 0x04, 0x10,
-    ST7735_GMCTRN1, 16      ,     // 16: Gamma Adjustments (neg. polarity), 16 args, no delay:
+    ST7735_GMCTRN1, 16      ,     // 16: Gamma adjustments (neg. polarity), 16 args, no delay:
       0x0A, 0x0D, 0x08, 0x07,
       0x0F, 0x07, 0x02, 0x07,
       0x09, 0x0F, 0x25, 0x35,
       0x00, 0x09, 0x04, 0x10,
-    ST7735_NORON  , 0           , // 17: Normal display on, no args, no delay
+    ST7735_PWCTR6 , 1           , // 17: Gate pump clock frequency, 1 arg, no delay:
+      0x80,                       //     Power saving disabled
+    ST7735_NORON  , 0           , // 18: Normal display on, no args, no delay
 };
 
 // Boot data
