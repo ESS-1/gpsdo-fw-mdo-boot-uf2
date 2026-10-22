@@ -128,6 +128,16 @@ endif
 $(LIB_DIR)/lib$(LIBNAME).a:
 	$(Q)$(LIB_CMD_PREFIX) $(MAKE) -C $(OPENCM3_DIR) TARGETS="$(LIB_TARGETS)"
 
+# Generate QR code artifacts from FIRMWARE_URL at build time
+OBJS += $(BUILD)/url_qr_data.o
+
+$(BUILD)/url_qr_data.c $(BUILD)/url_qr_data.h &: $(LIB_ST7735_DIR)/generate_qr.py
+	@printf "  GEN_QR  $@\n"
+	$(Q)python3 $< --url "$(FIRMWARE_URL)" --out-prefix $(BUILD)/url_qr_data --symbol g_url_qr --section ".boot_data"
+
+$(OBJS): | $(BUILD)/url_qr_data.h
+CPPFLAGS += -I$(BUILD)
+
 locm3: $(LIB_DIR)/lib$(LIBNAME).a
 
 %.images: %.bin %.hex %.list %.map
@@ -153,6 +163,12 @@ $(BUILD)/%.o: %.c $(LIB_DIR)/lib$(LIBNAME).a
 	@printf "  CC      $(*).c\n"
 	@mkdir -p $(dir $@)
 	$(Q)$(CC) $(CFLAGS) $(CPPFLAGS) $(ARCH_FLAGS) $(VER_FLAGS) -o $@ -c $(*).c
+
+# Rule to compile C files generated inside the build directory
+$(BUILD)/%.o: $(BUILD)/%.c
+	@printf "  CC      $<\n"
+	@mkdir -p $(dir $@)
+	$(Q)$(CC) $(CFLAGS) $(CPPFLAGS) $(ARCH_FLAGS) $(VER_FLAGS) -o $@ -c $<
 
 clean::
 	@printf "  CLEAN   libopencm3\n"

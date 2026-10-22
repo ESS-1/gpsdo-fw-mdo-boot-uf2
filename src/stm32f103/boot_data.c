@@ -1,6 +1,7 @@
 #include "boot_data.h"
 #include "st7735.h"
 #include "st7735_config.h"
+#include "url_qr_data.h"
 
 // Boot logo
 __attribute__((section(".boot_data"), used)) const uint8_t boot_logo_41x60[] = {
@@ -97,19 +98,15 @@ __attribute__((section(".boot_data"), used)) const uint8_t lcd_init_commands[] =
     ST7735_NORON  , 0           , // 18: Normal display on, no args, no delay
 };
 
+
 // Boot data
+#define URL_QR_MAX_SCALE_X (ST7735_WIDTH/G_URL_QR_WIDTH)
+#define URL_QR_MAX_SCALE_Y (ST7735_HEIGHT/G_URL_QR_HEIGHT)
+#define URL_QR_SCALE       (URL_QR_MAX_SCALE_X < URL_QR_MAX_SCALE_Y ? URL_QR_MAX_SCALE_X : URL_QR_MAX_SCALE_Y)
+
 __attribute__((section(".boot_data.header"), used)) const boot_data_t g_boot_data = {
     // Version
     .bootloader_version = UF2_INFO_VERSION,
-
-    // Boot logo
-    .boot_logo = {
-        .image           = boot_logo_41x60,
-        .image_length    = sizeof(boot_logo_41x60),
-        .format          = ImageFormat_Grayscale4Rle4,
-        .width           = 41,
-        .height          = 60,
-    },
 
     // LCD initialization commands
     .display_config = {
@@ -122,5 +119,26 @@ __attribute__((section(".boot_data.header"), used)) const boot_data_t g_boot_dat
         .vcom_default         = LCD_DEFAULT_VCOM,
         .vcom_offset_mv       = -425,
         .vcom_step_mv         = -25,
+    },
+
+    // Boot logo
+    .boot_logo = {
+        .image           = boot_logo_41x60,
+        .image_length    = sizeof(boot_logo_41x60),
+        .format          = ImageFormat_Grayscale4Rle4,
+        .width           = 41,
+        .height          = 60,
+    },
+
+    // App update URL
+    .app_update_url = {
+        .data        = g_url_qr_data,
+        .data_length = sizeof(g_url_qr_data),
+        .width       = G_URL_QR_WIDTH,
+        .height      = G_URL_QR_HEIGHT,
+        .scale_x     = URL_QR_SCALE,
+        .scale_y     = URL_QR_SCALE,
+        .bar_color   = ST7735_BLACK,
+        .bg_color    = ST7735_WHITE,
     },
 };
