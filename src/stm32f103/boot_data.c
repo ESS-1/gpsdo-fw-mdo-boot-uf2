@@ -100,10 +100,6 @@ __attribute__((section(".boot_data"), used)) const uint8_t lcd_init_commands[] =
 
 
 // Boot data
-#define URL_QR_MAX_SCALE_X (ST7735_WIDTH/G_URL_QR_WIDTH)
-#define URL_QR_MAX_SCALE_Y (ST7735_HEIGHT/G_URL_QR_HEIGHT)
-#define URL_QR_SCALE       (URL_QR_MAX_SCALE_X < URL_QR_MAX_SCALE_Y ? URL_QR_MAX_SCALE_X : URL_QR_MAX_SCALE_Y)
-
 __attribute__((section(".boot_data.header"), used)) const boot_data_t g_boot_data = {
     // Version
     .bootloader_version = UF2_INFO_VERSION,
@@ -136,9 +132,12 @@ __attribute__((section(".boot_data.header"), used)) const boot_data_t g_boot_dat
         .data_length = sizeof(g_url_qr_data),
         .width       = G_URL_QR_WIDTH,
         .height      = G_URL_QR_HEIGHT,
-        .scale_x     = URL_QR_SCALE,
-        .scale_y     = URL_QR_SCALE,
         .bar_color   = ST7735_BLACK,
         .bg_color    = ST7735_WHITE,
     },
 };
+
+// Ensure the QR code dimensions do not exceed the display boundaries
+#if (G_URL_QR_WIDTH > ST7735_WIDTH) || (G_URL_QR_HEIGHT > ST7735_HEIGHT)
+    #error "QR code dimensions exceed the display boundaries!"
+#endif
