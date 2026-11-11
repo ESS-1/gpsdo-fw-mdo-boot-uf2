@@ -149,12 +149,8 @@ static void target_lcd_spi_init(void)
 
 static void target_pll_i2c_init(void)
 {
-    // Enable peripheral clocks for AFIO and I2C1
+    // Enable peripheral clock for AFIO
     rcc_periph_clock_enable(RCC_AFIO);
-    rcc_periph_clock_enable(PLL_I2C_RCC);
-
-    // Hardware reset I2C peripheral state machine
-    rcc_periph_reset_pulse(PLL_I2C_RST);       // e.g. RST_I2C1
 
     // Apply pin remapping if defined
 #ifdef PLL_I2C_AFIO_MAPR
@@ -164,8 +160,14 @@ static void target_pll_i2c_init(void)
     // Configure I2C GPIO as Alternate Function Open-Drain (2 MHz)
     gpio_set_mode(PLL_I2C_GPIO_PORT, GPIO_MODE_OUTPUT_2_MHZ, GPIO_CNF_OUTPUT_ALTFN_OPENDRAIN, PLL_I2C_PINS);
 
-    // Reset and configure I2C for 100 kHz standard mode (36 MHz APB1 clock)
-    i2c_set_speed(PLL_I2C, i2c_speed_sm_100k, 36);
+    // Enable peripheral clock for I2C1
+    rcc_periph_clock_enable(PLL_I2C_RCC);
+
+    // Hardware reset I2C peripheral state machine
+    rcc_periph_reset_pulse(PLL_I2C_RST);
+
+    // Reset and configure I2C for 100 kHz standard mode (8 MHz APB1 clock)
+    i2c_set_speed(PLL_I2C, i2c_speed_sm_100k, 8);
     i2c_peripheral_enable(PLL_I2C);
 }
 
