@@ -20,11 +20,12 @@ jobs:
           pacman -S --noconfirm --needed \
             git \
             make \
+            cmake \
+            ninja \
             python \
             qrencode \
             arm-none-eabi-gcc \
             arm-none-eabi-binutils \
-            arm-none-eabi-newlib
 
       - name: Configure Git Safe Directory
         run: git config --global --add safe.directory "$GITHUB_WORKSPACE"
@@ -40,6 +41,8 @@ jobs:
           arm-none-eabi-gcc --version
           arm-none-eabi-ld --version
           make --version
+          cmake --version
+          ninja --version
           python --version
 
       - name: Build Bootloader
