@@ -57,6 +57,23 @@ OBJCOPY        := $(PREFIX)-objcopy
 OBJDUMP        := $(PREFIX)-objdump
 
 ####################################################################
+# Picolibc
+
+SRC_ABS_DIR             := $(shell pwd -W 2>/dev/null || pwd)
+PICOLIBC_TOOLCHAIN      := picolibc-cortex-m3.cmake
+PICOLIBC_BUILD_DIR      := build/picolibc-m3/build
+PICOLIBC_INSTALL_DIR    := build/picolibc-m3/install
+PICOLIBC_LIB            := $(PICOLIBC_INSTALL_DIR)/lib/libc.a
+
+GCC_BUILTIN_INCLUDE_DIR := $(subst \,/,$(shell $(CC) -print-file-name=include))
+GCC_FIXED_INCLUDE_DIR   := $(subst \,/,$(shell $(CC) -print-file-name=include-fixed))
+
+PICOLIBC_INC_FLAGS := -nostdinc \
+	-isystem "$(SRC_ABS_DIR)/$(PICOLIBC_INSTALL_DIR)/include" \
+	-isystem "$(GCC_BUILTIN_INCLUDE_DIR)" \
+	-isystem "$(GCC_FIXED_INCLUDE_DIR)"
+
+####################################################################
 # libopencm3 files
 
 INCLUDE_DIR = $(OPENCM3_DIR)/include
@@ -79,13 +96,15 @@ endif
 
 CPPFLAGS    += -MD
 CPPFLAGS    += -Wall -Wundef
+CPPFLAGS    += $(PICOLIBC_INC_FLAGS)
 CPPFLAGS    += -I$(INCLUDE_DIR) $(DEFS)
 
 ####################################################################
 # Linker flags
 
-LDFLAGS    += --static -nostartfiles
-LDFLAGS    += --specs=nano.specs
+LDFLAGS    += --static -nostartfiles -nostdlib
+# Forbid heap usage at link time (no __wrap_* stubs provided, so any call breaks linking)
+LDFLAGS    += -Wl,--wrap=malloc,--wrap=calloc,--wrap=realloc,--wrap=free,--wrap=sbrk,--wrap=_sbrk
 LDFLAGS    += -L$(LIB_DIR)
 LDFLAGS    += -L$(LIB_DIR)/$(LIB_TARGETS)
 LDFLAGS    += -T$(LDSCRIPT)
@@ -101,7 +120,7 @@ endif
 # Used libraries
 
 LDLIBS     += -l$(LIBNAME)
-LDLIBS     += -Wl,--start-group -lc -lgcc -lnosys -Wl,--end-group
+LDLIBS     += -Wl,--start-group "$(PICOLIBC_LIB)" -lgcc -Wl,--end-group
 
 ####################################################################
 ####################################################################
@@ -120,12 +139,40 @@ ifeq (,$(wildcard $(LDSCRIPT)))
   $(error Unable to find specified linker script: $(LDSCRIPT))
 endif
 
+
+$(PICOLIBC_LIB): $(PICOLIBC_TOOLCHAIN)
+	@printf "  CMAKE   picolibc\n"
+	$(Q)cmake -G Ninja \
+		-S "$(PICOLIBC_DIR)" \
+		-B "$(PICOLIBC_BUILD_DIR)" \
+		-DCMAKE_TOOLCHAIN_FILE="$(SRC_ABS_DIR)/$(PICOLIBC_TOOLCHAIN)" \
+		-DCMAKE_C_COMPILER=$(CC) \
+		-DCMAKE_BUILD_TYPE=MinSizeRel \
+		-D__PREFER_SIZE_OVER_SPEED=ON \
+		-DENABLE_MALLOC=OFF \
+		-D__SINGLE_THREAD=ON \
+		-D__THREAD_LOCAL_STORAGE=OFF \
+		-D__GLOBAL_ERRNO=ON \
+		-D__IO_DEFAULT=i \
+		-D__IO_FLOAT=OFF \
+		-D__IO_C99_FORMATS=ON \
+		-D__IO_LONG_LONG=OFF \
+		-DTESTS=OFF
+	@printf "  BUILD   picolibc\n"
+	$(Q)cmake --build "$(PICOLIBC_BUILD_DIR)"
+	$(Q)cmake --install "$(PICOLIBC_BUILD_DIR)" --prefix "$(PICOLIBC_INSTALL_DIR)"
+
+picolibc: $(PICOLIBC_LIB)
+
+LIB_CFLAGS := $(PICOLIBC_INC_FLAGS)
 LIB_CMD_PREFIX :=
 ifeq ($(LTO),1)
-  LIB_CMD_PREFIX := CFLAGS="-flto -ffat-lto-objects" AR="arm-none-eabi-gcc-ar" RANLIB="arm-none-eabi-gcc-ranlib"
+  LIB_CFLAGS += -flto -ffat-lto-objects
+  LIB_CMD_PREFIX := AR="arm-none-eabi-gcc-ar" RANLIB="arm-none-eabi-gcc-ranlib"
 endif
+LIB_CMD_PREFIX += CFLAGS='$(LIB_CFLAGS)'
 
-$(LIB_DIR)/lib$(LIBNAME).a:
+$(LIB_DIR)/lib$(LIBNAME).a: $(PICOLIBC_LIB)
 	$(Q)$(LIB_CMD_PREFIX) $(MAKE) -C $(OPENCM3_DIR) TARGETS="$(LIB_TARGETS)"
 
 # Generate QR code artifacts from FIRMWARE_URL at build time
@@ -135,7 +182,7 @@ $(BUILD)/url_qr_data.c $(BUILD)/url_qr_data.h &: $(LIB_ST7735_DIR)/generate_qr.p
 	@printf "  GEN_QR  $@\n"
 	$(Q)python3 $< --url "$(FIRMWARE_URL)" --out-prefix $(BUILD)/url_qr_data --symbol g_url_qr --section ".boot_data"
 
-$(OBJS): | $(BUILD)/url_qr_data.h
+$(OBJS): | $(BUILD)/url_qr_data.h $(PICOLIBC_LIB)
 CPPFLAGS += -I$(BUILD)
 
 locm3: $(LIB_DIR)/lib$(LIBNAME).a
@@ -155,7 +202,7 @@ locm3: $(LIB_DIR)/lib$(LIBNAME).a
 	@printf "  OBJDUMP $(*).list\n"
 	$(Q)$(OBJDUMP) -S $(*).elf > $(*).list
 
-%.elf %.map: $(OBJS) $(LDSCRIPT) $(LIB_DIR)/lib$(LIBNAME).a
+%.elf %.map: $(OBJS) $(LDSCRIPT) $(LIB_DIR)/lib$(LIBNAME).a $(PICOLIBC_LIB)
 	@printf "  LD      $(*).elf\n"
 	$(Q)$(LD) $(LDFLAGS) $(ARCH_FLAGS) $(OBJS) $(LDLIBS) -o $(*).elf
 
@@ -174,6 +221,6 @@ clean::
 	@printf "  CLEAN   libopencm3\n"
 	$(Q)$(MAKE) -C $(OPENCM3_DIR) clean TARGETS="$(LIB_TARGETS)"
 
-.PHONY: images clean elf bin hex list locm3
+.PHONY: images clean elf bin hex list locm3 picolibc
 
 -include $(OBJS:.o=.d)

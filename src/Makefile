@@ -23,7 +23,8 @@ IGNORE_IDCODE ?= 0
 LTO ?= 1
 
 
-OPENCM3_DIR = ../libopencm3
+PICOLIBC_DIR := ../lib/picolibc
+OPENCM3_DIR  := ../libopencm3
 
 include version.mk
 
